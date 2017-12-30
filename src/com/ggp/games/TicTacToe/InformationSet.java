@@ -31,7 +31,7 @@ public class InformationSet implements IInformationSet{
         ArrayList<IAction> ret = new ArrayList<>(field.length - myFields - enemyFields);
         for(int x = 0; x < 5; ++x) {
             for (int y = 0; y < 5; ++y) {
-                if (field[5*x + y] == FIELD_UNKNOWN) ret.add(Action.getAction(owningPlayerId, x, y));
+                if (field[5*x + y] == FIELD_UNKNOWN) ret.add(MarkFieldAction.getAction(owningPlayerId, x, y));
             }
         }
         return ret;
@@ -40,7 +40,7 @@ public class InformationSet implements IInformationSet{
     @Override
     public IInformationSet next(IAction a) {
         if (!isLegal(a)) return null;
-        Action _a = (Action) a;
+        MarkFieldAction _a = (MarkFieldAction) a;
         int x = _a.getX();
         int y = _a.getY();
         int[] f = Arrays.copyOf(field, field.length);
@@ -51,8 +51,8 @@ public class InformationSet implements IInformationSet{
 
     @Override
     public IInformationSet applyPercept(IPercept p) {
-        if (p == null || !(p instanceof Percept)) return null;
-        Percept _p = (Percept) p;
+        if (p == null || !(p instanceof ActionSuccessPercept)) return null;
+        ActionSuccessPercept _p = (ActionSuccessPercept) p;
         if (_p.isSuccessful()) return this;
         int x = _p.getLastAction().getX();
         int y = _p.getLastAction().getY();
@@ -63,8 +63,8 @@ public class InformationSet implements IInformationSet{
 
     @Override
     public boolean isLegal(IAction a) {
-        if (a == null || !(a instanceof  Action)) return false;
-        Action _a = (Action) a;
+        if (a == null || !(a instanceof MarkFieldAction)) return false;
+        MarkFieldAction _a = (MarkFieldAction) a;
         if (_a.getRole() != owningPlayerId) return false;
         int x = _a.getX();
         int y = _a.getY();
@@ -123,7 +123,7 @@ public class InformationSet implements IInformationSet{
      * @param _p
      * @return next info set
      */
-    protected InformationSet nextWithPercept(Percept _p)
+    protected InformationSet nextWithPercept(ActionSuccessPercept _p)
     {
         if (_p.isSuccessful()) return this;
         int x = _p.getLastAction().getX();

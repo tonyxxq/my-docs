@@ -2,14 +2,14 @@ package com.ggp.games.TicTacToe;
 
 import com.ggp.IAction;
 
-public class Action implements IAction {
-    private static Action[] xActions = new Action[25];
-    private static Action[] oActions = new Action[25];
+public class MarkFieldAction implements IAction {
+    private static MarkFieldAction[] xActions = new MarkFieldAction[25];
+    private static MarkFieldAction[] oActions = new MarkFieldAction[25];
     static {
         for (int x = 0; x < 5; ++x) {
             for (int y = 0; y < 5; ++y) {
-                xActions[5*x + y] = new Action(CompleteInformationState.PLAYER_X, x, y);
-                oActions[5*x + y] = new Action(CompleteInformationState.PLAYER_O, x, y);
+                xActions[5*x + y] = new MarkFieldAction(CompleteInformationState.PLAYER_X, x, y);
+                oActions[5*x + y] = new MarkFieldAction(CompleteInformationState.PLAYER_O, x, y);
             }
         }
     }
@@ -17,7 +17,7 @@ public class Action implements IAction {
     private int x = 0;
     private int y = 0;
 
-    private Action(int role, int x, int y) {
+    private MarkFieldAction(int role, int x, int y) {
         this.role = role;
         this.x = x;
         this.y = y;
@@ -35,7 +35,7 @@ public class Action implements IAction {
         return y;
     }
 
-    protected static Action getAction(int role, int x, int y) {
+    protected static MarkFieldAction getAction(int role, int x, int y) {
         if (role == CompleteInformationState.PLAYER_X) {
             return xActions[5*x + y];
         } else {

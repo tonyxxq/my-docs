@@ -59,7 +59,7 @@ public class CompleteInformationState implements ICompleteInformationState {
     @Override
     public ICompleteInformationState next(IAction a) {
         if (!isLegal(a)) return null;
-        Percept p = (Percept) getPercept(a);
+        ActionSuccessPercept p = (ActionSuccessPercept) getPercept(a);
         InformationSet next = getActingPlayerInfoSet().nextWithPercept(p);
         InformationSet nextX, nextO;
         int nextPlayer;
@@ -78,11 +78,11 @@ public class CompleteInformationState implements ICompleteInformationState {
     @Override
     public IPercept getPercept(IAction a) {
         if (!isLegal(a)) return null;
-        Action _a = (Action) a;
+        MarkFieldAction _a = (MarkFieldAction) a;
         int x = _a.getX();
         int y = _a.getY();
-        if (getNonActingPlayerInfoSet().getFieldValue(x, y) != InformationSet.FIELD_MINE) return new Percept(_a, true);
-        return new Percept(_a, false);
+        if (getNonActingPlayerInfoSet().getFieldValue(x, y) != InformationSet.FIELD_MINE) return new ActionSuccessPercept(_a, true);
+        return new ActionSuccessPercept(_a, false);
     }
 
     @Override

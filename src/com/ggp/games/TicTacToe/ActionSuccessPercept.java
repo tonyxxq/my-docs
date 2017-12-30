@@ -2,16 +2,16 @@ package com.ggp.games.TicTacToe;
 
 import com.ggp.IPercept;
 
-public class Percept implements IPercept {
-    private Action lastAction;
+public class ActionSuccessPercept implements IPercept {
+    private MarkFieldAction lastAction;
     private boolean successful;
 
-    public Percept(Action lastAction, boolean successful) {
+    public ActionSuccessPercept(MarkFieldAction lastAction, boolean successful) {
         this.lastAction = lastAction;
         this.successful = successful;
     }
 
-    public Action getLastAction() {
+    public MarkFieldAction getLastAction() {
         return lastAction;
     }
 
