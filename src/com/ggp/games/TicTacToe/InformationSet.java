@@ -31,7 +31,7 @@ public class InformationSet implements IInformationSet{
         ArrayList<IAction> ret = new ArrayList<>(field.length - myFields - enemyFields);
         for(int x = 0; x < 5; ++x) {
             for (int y = 0; y < 5; ++y) {
-                if (field[5*x + y] == FIELD_UNKNOWN) ret.add(new Action(owningPlayerId, x, y));
+                if (field[5*x + y] == FIELD_UNKNOWN) ret.add(Action.getAction(owningPlayerId, x, y));
             }
         }
         return ret;
