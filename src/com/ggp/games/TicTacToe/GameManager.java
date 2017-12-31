@@ -24,6 +24,7 @@ public class GameManager implements IGameManager {
 
     @Override
     public boolean playOneTurn() {
+        if (xPlayer == null || oPlayer == null) return true;
         if (state.isTerminal()) return true;
         IAction a;
         int turn = state.getActingPlayerId();
@@ -51,6 +52,7 @@ public class GameManager implements IGameManager {
     public void registerPlayer(int role, IPlayer player) {
         if (role == CompleteInformationState.PLAYER_X) xPlayer = player;
         if (role == CompleteInformationState.PLAYER_O) oPlayer = player;
+        player.initGame(this, role, initialState.getInformationSet(role));
     }
 
     @Override

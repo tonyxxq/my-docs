@@ -58,6 +58,7 @@ public class CompleteInformationState implements ICompleteInformationState {
 
     @Override
     public ICompleteInformationState next(IAction a) {
+        if (a == null && !getActingPlayerInfoSet().hasLegalActions()) return new CompleteInformationState(xInfoSet, oInfoSet, actingPlayer == PLAYER_X ? PLAYER_O : PLAYER_X);
         if (!isLegal(a)) return null;
         ActionSuccessPercept p = (ActionSuccessPercept) getPercept(a);
         InformationSet next = getActingPlayerInfoSet().nextWithPercept(p);
@@ -101,17 +102,21 @@ public class CompleteInformationState implements ICompleteInformationState {
     }
 
     private void detectTerminal() {
-        if (actingPlayer != PLAYER_X) return;
         boolean xWon = xInfoSet.hasPlayerWon();
         boolean oWon = oInfoSet.hasPlayerWon();
-        terminal = xWon || oWon;
+        terminal = xWon || oWon || !xInfoSet.hasLegalActions() || !oInfoSet.hasLegalActions();
         if (!terminal) return;
-        if (xWon && oWon) {
+        if (xWon == oWon) {
             xPayoff = 0;
         } else if (xWon) {
             xPayoff = 1;
         } else {
             xPayoff = -1;
         }
+    }
+
+    protected InformationSet getInformationSet(int role) {
+        if (role == PLAYER_X) return xInfoSet;
+        return oInfoSet;
     }
 }

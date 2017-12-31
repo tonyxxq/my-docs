@@ -42,4 +42,10 @@ public class MarkFieldAction implements IAction {
             return oActions[5*x + y];
         }
     }
+
+    @Override
+    public String toString() {
+        String mark = role == CompleteInformationState.PLAYER_X ? "X" : "O";
+        return mark + " -> [" + x + ", " + y + "]";
+    }
 }

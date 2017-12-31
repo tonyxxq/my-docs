@@ -1,4 +1,4 @@
-package com.ggp.deepstack;
+package com.ggp.players.deepstack;
 
 import com.ggp.*;
 
@@ -22,6 +22,11 @@ public class DeepstackPlayer implements IPlayer {
     @Override
     public int getId() {
         return id;
+    }
+
+    @Override
+    public void initGame(IGameManager game, int role, IInformationSet initialInfoSet) {
+
     }
 
     private double cfr(ICompleteInformationState s, int player, int t, int p1, int p2) {

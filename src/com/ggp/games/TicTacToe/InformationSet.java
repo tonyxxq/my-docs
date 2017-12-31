@@ -26,9 +26,14 @@ public class InformationSet implements IInformationSet{
         this.enemyFields = enemyFields;
     }
 
+    public boolean hasLegalActions() {
+        return myFields + enemyFields < field.length;
+    }
+
     @Override
     public List<IAction> getLegalActions() {
         ArrayList<IAction> ret = new ArrayList<>(field.length - myFields - enemyFields);
+        if (!hasLegalActions()) return ret;
         for(int x = 0; x < 5; ++x) {
             for (int y = 0; y < 5; ++y) {
                 if (field[5*x + y] == FIELD_UNKNOWN) ret.add(MarkFieldAction.getAction(owningPlayerId, x, y));
@@ -77,18 +82,20 @@ public class InformationSet implements IInformationSet{
         if (myFields < 5) return false;
         // check columns
         for(int x = 0; x < 5; ++x) {
-            for(int y = 0; y < 5; ++y) {
-                if (field[5*x + y] != FIELD_MINE) continue;
+            int y = 0;
+            for(; y < 5; ++y) {
+                if (field[5*x + y] != FIELD_MINE) break;
             }
-            return true;
+            if (y == 5) return true;
         }
 
         // check rows
         for(int y = 0; y < 5; ++y) {
-            for(int x = 0; x < 5; ++x) {
-                if (field[5*x + y] != FIELD_MINE) continue;
+            int x = 0;
+            for(; x < 5; ++x) {
+                if (field[5*x + y] != FIELD_MINE) break;
             }
-            return true;
+            if (x == 5) return true;
         }
 
         // check diagonals
@@ -98,18 +105,14 @@ public class InformationSet implements IInformationSet{
             for(; i < 5; ++i) {
                 if (field[i*5 + i] != FIELD_MINE) break;
             }
-            if (i == 5) {
-                return true;
-            }
+            if (i == 5) return true;
         }
         {
             int i = 0;
             for(; i < 5; ++i) {
                 if (field[i*5 + (4-i)] != FIELD_MINE) break;
             }
-            if (i == 5) {
-                return true;
-            }
+            if (i == 5) return true;
         }
         return false;
     }
@@ -125,7 +128,6 @@ public class InformationSet implements IInformationSet{
      */
     protected InformationSet nextWithPercept(ActionSuccessPercept _p)
     {
-        if (_p.isSuccessful()) return this;
         int x = _p.getLastAction().getX();
         int y = _p.getLastAction().getY();
         int[] f = Arrays.copyOf(field, field.length);
