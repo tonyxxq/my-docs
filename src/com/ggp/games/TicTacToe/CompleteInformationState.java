@@ -104,9 +104,10 @@ public class CompleteInformationState implements ICompleteInformationState {
     }
 
     private void detectTerminal() {
+        if (terminal) return;
         boolean xWon = xInfoSet.hasPlayerWon();
         boolean oWon = oInfoSet.hasPlayerWon();
-        terminal = xWon || oWon || !xInfoSet.hasLegalActions() || !oInfoSet.hasLegalActions();
+        terminal = !xInfoSet.hasLegalActions() || !oInfoSet.hasLegalActions() || oWon || (xWon && actingPlayer == PLAYER_X);
         if (!terminal) return;
         if (xWon == oWon) {
             xPayoff = 0;
