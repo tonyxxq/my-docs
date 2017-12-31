@@ -5,6 +5,7 @@ import com.ggp.ICompleteInformationState;
 import com.ggp.IInformationSet;
 import com.ggp.IPercept;
 
+import java.util.Collections;
 import java.util.List;
 
 public class CompleteInformationState implements ICompleteInformationState {
@@ -60,7 +61,8 @@ public class CompleteInformationState implements ICompleteInformationState {
     public ICompleteInformationState next(IAction a) {
         if (a == null && !getActingPlayerInfoSet().hasLegalActions()) return new CompleteInformationState(xInfoSet, oInfoSet, actingPlayer == PLAYER_X ? PLAYER_O : PLAYER_X);
         if (!isLegal(a)) return null;
-        ActionSuccessPercept p = (ActionSuccessPercept) getPercept(a);
+        // TTT has exactly one percept for each action
+        ActionSuccessPercept p = (ActionSuccessPercept) getPercepts(a).iterator().next();
         InformationSet next = getActingPlayerInfoSet().nextWithPercept(p);
         InformationSet nextX, nextO;
         int nextPlayer;
@@ -77,13 +79,13 @@ public class CompleteInformationState implements ICompleteInformationState {
     }
 
     @Override
-    public IPercept getPercept(IAction a) {
+    public Iterable<IPercept> getPercepts(IAction a) {
         if (!isLegal(a)) return null;
         MarkFieldAction _a = (MarkFieldAction) a;
         int x = _a.getX();
         int y = _a.getY();
-        if (getNonActingPlayerInfoSet().getFieldValue(x, y) != InformationSet.FIELD_MINE) return new ActionSuccessPercept(_a, true);
-        return new ActionSuccessPercept(_a, false);
+        if (getNonActingPlayerInfoSet().getFieldValue(x, y) != InformationSet.FIELD_MINE) return Collections.singleton(new ActionSuccessPercept(_a, true));
+        return Collections.singleton(new ActionSuccessPercept(_a, false));
     }
 
     @Override

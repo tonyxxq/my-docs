@@ -10,7 +10,7 @@ public interface ICompleteInformationState {
     List<IAction> getLegalActions();
     IInformationSet getInfoSetForActingPlayer();
     ICompleteInformationState next(IAction a);
-    IPercept getPercept(IAction a);
+    Iterable<IPercept> getPercepts(IAction a);
     boolean isLegal(IAction a);
 
 }

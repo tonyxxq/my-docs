@@ -20,13 +20,8 @@ public class DeepstackPlayer implements IPlayer {
     }
 
     @Override
-    public int getId() {
+    public int getRole() {
         return id;
-    }
-
-    @Override
-    public void initGame(IGameManager game, int role, IInformationSet initialInfoSet) {
-
     }
 
     private double cfr(ICompleteInformationState s, int player, int t, int p1, int p2) {

@@ -1,8 +1,7 @@
 package com.ggp;
 
 public interface IPlayer {
-    void initGame(IGameManager game, int role, IInformationSet initialInfoSet);
     IAction act();
-    int getId();
+    int getRole();
     void receivePercepts(IPercept percept);
 }

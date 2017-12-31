@@ -18,4 +18,9 @@ public class ActionSuccessPercept implements IPercept {
     public boolean isSuccessful() {
         return successful;
     }
+
+    @Override
+    public int getTargetPlayer() {
+        return lastAction.getRole();
+    }
 }

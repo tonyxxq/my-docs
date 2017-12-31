@@ -1,33 +1,27 @@
 package com.ggp.players;
 
 import com.ggp.*;
-
-import java.util.List;
-import java.util.Random;
+import com.ggp.utils.RandomItemSelector;
 
 public class RandomPlayer implements IPlayer {
     private IInformationSet infoSet;
     private int role;
-    private Random rng = new Random();
+    RandomItemSelector<IAction> randomActionSelector = new RandomItemSelector<>();
 
-    @Override
-    public void initGame(IGameManager game, int role, IInformationSet initialInfoSet) {
+    public RandomPlayer(IInformationSet infoSet, int role) {
+        this.infoSet = infoSet;
         this.role = role;
-        this.infoSet = initialInfoSet;
     }
 
     @Override
     public IAction act() {
-        List<IAction> actions = infoSet.getLegalActions();
-        if (actions == null || actions.isEmpty()) return null;
-        IAction a = actions.get(rng.nextInt(actions.size()));
+        IAction a = randomActionSelector.select(infoSet.getLegalActions());
         infoSet = infoSet.next(a);
-        System.out.println("Playing " + a.toString());
         return a;
     }
 
     @Override
-    public int getId() {
+    public int getRole() {
         return role;
     }
 
