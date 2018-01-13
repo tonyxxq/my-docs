@@ -73,7 +73,7 @@ public class CompleteInformationState implements ICompleteInformationState {
         } else {
             nextPlayer = PLAYER_X;
             nextX = xInfoSet;
-            nextO = oInfoSet;
+            nextO = next;
         }
         return new CompleteInformationState(nextX, nextO, nextPlayer);
     }
