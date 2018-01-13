@@ -7,6 +7,7 @@ public class GameManager {
     private IPlayer player2;
     private ICompleteInformationState state;
     private RandomItemSelector<IAction> randomActionSelector = new RandomItemSelector<>();
+    private IStateVisualizer stateVisualizer = null;
 
     public GameManager(IPlayerFactory playerFactory1, IPlayerFactory playerFactory2, IGameDescription game) {
         this.player1 = playerFactory1.create(game, 1);
@@ -41,11 +42,17 @@ public class GameManager {
                 player2.receivePercepts(p);
             }
         }
-
+        if (stateVisualizer != null) {
+            stateVisualizer.visualize(state);
+        }
         return state.isTerminal();
     }
 
     public int getPayoff(int role) {
         return (int) state.getPayoff(role);
+    }
+
+    public void setStateVisualizer(IStateVisualizer visualizer) {
+        this.stateVisualizer = visualizer;
     }
 }
