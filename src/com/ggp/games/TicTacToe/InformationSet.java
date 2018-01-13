@@ -7,6 +7,7 @@ import com.ggp.IPercept;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class InformationSet implements IInformationSet{
     private int[] field;
@@ -14,6 +15,7 @@ public class InformationSet implements IInformationSet{
     private int turn;
     private int myFields;
     private int enemyFields;
+    private Long comparisonKey;
     public static final int FIELD_UNKNOWN = 0;
     public static final int FIELD_MINE = 1;
     public static final int FIELD_ENEMY = 2;
@@ -24,6 +26,7 @@ public class InformationSet implements IInformationSet{
         this.turn = turn;
         this.myFields = myFields;
         this.enemyFields = enemyFields;
+        this.comparisonKey = computeComparisonKey();
     }
 
     public boolean hasLegalActions() {
@@ -134,5 +137,36 @@ public class InformationSet implements IInformationSet{
         f[5*x + y] = _p.isSuccessful() ? FIELD_MINE : FIELD_ENEMY;
 
         return new InformationSet(f, owningPlayerId, turn + 1, myFields + (_p.isSuccessful() ? 1 : 0), enemyFields + (_p.isSuccessful() ? 0 : 1));
+    }
+
+    private long computeComparisonKey() {
+        long sum = 0;
+        long mul = 1;
+        for (int i = 0; i < 25; ++i) {
+            sum += field[i] * mul;
+            mul *= 3;
+        }
+        if (owningPlayerId == CompleteInformationState.PLAYER_O) return -sum;
+        return sum;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        if (!(o instanceof InformationSet)) return -1;
+        InformationSet s = (InformationSet) o;
+        return comparisonKey.compareTo(s.comparisonKey);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        InformationSet that = (InformationSet) o;
+        return Objects.equals(comparisonKey, that.comparisonKey);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(comparisonKey);
     }
 }
