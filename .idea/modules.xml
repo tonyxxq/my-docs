@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/GeneralDeepstack.iml" filepath="$PROJECT_DIR$/GeneralDeepstack.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/GeneralDeepstack_main.iml" filepath="$PROJECT_DIR$/.idea/modules/GeneralDeepstack_main.iml" group="GeneralDeepstack" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/GeneralDeepstack_test.iml" filepath="$PROJECT_DIR$/.idea/modules/GeneralDeepstack_test.iml" group="GeneralDeepstack" />
     </modules>
   </component>
 </project>
