@@ -2,6 +2,8 @@ package com.ggp.games.TicTacToe;
 
 import com.ggp.IAction;
 
+import java.util.Objects;
+
 public class MarkFieldAction implements IAction {
     private static MarkFieldAction[] xActions = new MarkFieldAction[25];
     private static MarkFieldAction[] oActions = new MarkFieldAction[25];
@@ -14,13 +16,17 @@ public class MarkFieldAction implements IAction {
         }
     }
     private int role;
-    private int x = 0;
-    private int y = 0;
+    private int x;
+    private int y;
+    private String comparisonKey;
+    private static String[] roleKeys = {"X", "O"};
 
     private MarkFieldAction(int role, int x, int y) {
         this.role = role;
         this.x = x;
         this.y = y;
+
+        comparisonKey = String.join(roleKeys[role-1], ";", Integer.toHexString(x), ";",  Integer.toHexString(y));
     }
 
     public int getRole() {
@@ -47,5 +53,18 @@ public class MarkFieldAction implements IAction {
     public String toString() {
         String mark = role == CompleteInformationState.PLAYER_X ? "X" : "O";
         return mark + " -> [" + x + ", " + y + "]";
+    }
+
+    @Override
+    public int hashCode() {
+        return comparisonKey.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MarkFieldAction that = (MarkFieldAction) o;
+        return Objects.equals(comparisonKey, that.comparisonKey);
     }
 }
