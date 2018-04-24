@@ -1,0 +1,23 @@
+1.map函数 接收一个函数和一个或多个list返回一个list(没有去掉元素)
+2.filter函数 接收一个函数和一个或多个list返回一个list(去掉不满足条件的元素)
+3.s.capitalize() 把字符串的第一个字符大写
+4.random.choice([1,2,3,4,5,6])
+
+5.python模块就是python文件
+6.python包，目录下有__init__.py文件
+7.__init__.py作用是标志当前目录为包，__all__,也可在里边加方法
+6.help() 函数    dir()函数（可带参数不带参数），__doc__函数，查看模块的文档
+7.>>> hello.__file__
+ 'C:\\python36\\hello.py'
+ >>>
+ 查找文件的目录
+8.sys.modules 是一个字典，维护导入文件的模块，导入一次无需导入第二次
+9.os.environ['JAVA_HOME']，获取当前系统的环境变量
+10.os.system(),execv(),os.startfile()可以执行外部程序
+11.shelve.open()  返回一个对象，可以当成字典使用
+12.eval(表达式，scope) ,scope表示前面的表达式需要从后面的scope里边取值进行计算,是一个字典类型
+13.exec("x=1", scope) 把x=1，这个变量放置到scope的作用域内
+14.__repr__和__str__这两个方法都是用于显示的，__str__是面向用户的，而__repr__面向程序员。
+15.pip安装时设置默认的时间大一点
+   pip --default-timeout=100 install -U scikit-learn
+   

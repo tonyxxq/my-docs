@@ -1,0 +1,70 @@
+$ sudo apt-get install mongodb
+$ service mongodb start // 默认不会自己启动
+$ mongo  进入mongoDB
+> use mydb 使用某个数据库
+> db 查看当前数据库
+> show dbs 显示所有的数据库
+> db.dropDatabase() 删除数据库
+> db.createCollection("users) 创建集合
+> dp.users.drop() 删除集合
+// 插入或则保存数据的时候没有集合会自动创建
+// 若新增的数据中存在主键 ，insert() 会提示错误，而save() 则更改原来的内容为新内容。
+> db.users.insert([
+    {
+        name:"jam",
+	email:":"jam@qq.com"
+    }
+])
+> db.users.save([
+    {
+        name:"jam",
+	email:":"jam@qq.com"
+    }
+])
+
+db.post.insert([
+{
+   title: 'MongoDB Overview', 
+   description: 'MongoDB is no sql database',
+   by: 'shiyanlou',
+   url: 'http://www.shiyanlou.com',
+   tags: ['mongodb', 'database', 'NoSQL'],
+   likes: 100
+},
+{
+   title: 'NoSQL Database', 
+   description: "NoSQL database doesn't have tables",
+   by: 'shiyanlou',
+   url: 'http://www.shiyanlou.com',
+   tags: ['mongodb', 'database', 'NoSQL'],
+   likes: 20, 
+   comments: [    
+      {
+         user:'user1',
+         message: 'My first comment',
+         dateCreated: new Date(2013,11,10,2,35),
+         like: 0 
+      }
+   ]
+}
+])
+
+> db.post.find() 查询post下面的所有数据
+> db.post.find().pretty() 结果更美观
+> db.post.find({"by":"shiyanlou","title": "MongoDB Overview"}).pretty() // and,指定查询条件，可多个
+> db.post.find(
+   {
+      $or: [
+         {key1: value1}, {key2:value2}
+      ]
+   }
+).pretty() // or查询条件
+> db.post.find({
+    "likes": {$gt:10},
+    $or: [
+        {"by": "shiyanlou"},
+        {"title": "MongoDB Overview"}
+    ]
+}).pretty() // 同时使用and和or查询条件
+
+{$gt:10} 表示大于10，另外，$lt 表示小于，$lte 表示小于等于，$gte 表示大于等于，$ne 表示不等于。
