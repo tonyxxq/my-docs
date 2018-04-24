@@ -29,8 +29,8 @@
   # 添加文件到待提交
   git add filename
 
-  # 提交到本地
-  git commit filename
+  # 提交到本地并提交修改信息
+  git commit -m "message"
 
   # 添加远程仓库
   git add remote origin https://github.com/TonyXXQ/reflections
