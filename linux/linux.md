@@ -3,8 +3,10 @@
   ```
   # ssh连接成功，输入密码,-p 指定端口
   ssh root@192.168.10.222
+
   # 在ssh连接成功之后，如果命令执行时间过长，又想断开ssh，使用nohup(no hang up)，该命令会继续执行
   nohup wget http:#mirror.is.co.za/mirrors/linuxmint.com/iso#stable
+
   # 退出
   exit 或  ctrl + d
   ```
@@ -14,11 +16,13 @@
   ```
   #下载文件到当前目录（自定义名称）
   curl  -o name downloadurl 
+
   #下载文件到当前目录(使用默认名称)
   curl  -O  downloaduarl 
 
   #wget从指定的url下载文件，支持断点续传，参考http:#man.linuxde.net/wget
   wget downloaduarl
+
   # 如果遇到insecurely
   wget --no-check-certificate downloaduarl
   -c:支持断点续传
@@ -36,69 +40,101 @@
   ```
   # 输出当前时间
   date
+
   # 当前计算机的名称
   hostname
+
   # 计算器，输出4(注意空格)
   expr 2 + 2
+
   # 获取udacity.com的ip
   host udacity.com  
+
   # 输出you rock(只是打印信息)
   echo you rock  
+
   # 输出操作系统的名称（linux系统为Linux）
   uname
+
   # 输出之前的命令
   history
+
   # bash版本
   bash --version
+
   # 现在时间、系统已运行时间、目前有多少登陆用户、系统在过去的1分钟、5分钟和15分钟内的平均负载。
   uptime
+
   # 查找之前使用的命令行
   ctrl + r
+
   # 可提供多个文件合并在一起显示（concrate的缩写）
   cat 1.xml 2.xml
+
   # 文件统计程序（一次返回文件行数，字数，字节数）
   wc filename
+
   # 分析两个文件的不同之处(-u表示标准化输出)
   diff -u 1.xml 2.xml
+
   # 检测指定的ip是否在运行
   ping ip
+
   # 用于排序
   sort 文件名称
+
   # 打印当前工作目录
   pwd
+
   # ~表示当前用户的根目录
   cd ~
+
   # 不加参数表示返回自己的根目录
   cd
+
   # 上一次的目录
   cd -
+
   # 文件/文件夹复制
   cp -r filename filepath
+
   # 文件 文件夹 移动
   mv -r filename filepath
+
   # 文件重命名
   mv -r filename filename2
+
   # 递归删除
   rm -rf file/filenamedirname
+
   # 创建目录，创建多个-p
   mkdir -p dirname/dirname1
+
   # 删除目录，如果文件夹下有东西需要递归删除，-p
   rmdir -p dirname/*
+
   # 查看安装的系统的位数
   getconf LONG_BIT
+
   # 显示某个目录结构下的文件以树结构显示。指定显示层级数，如果不指定显示所有层级。导出到指定文件。
   tree -L N /usr > /usr/mytree.txt
   ```
 
-- less
+- less工具
 
   ```
   ‘>’  文件的最后一行
+
   ‘d或空格’向下滚动一页
+
   ‘u’ 向上滚动一页
+
   输入行数+enter跳转到指定的行
+
   ‘/指定字符’ + ENTER搜索指定的字符（实际是使用正则表达式匹配）
+
   ‘n’跳转到下一个查询出的字符  
+
   ‘N’ 跳转到上一个查询出的字符
   ```
 
@@ -108,22 +144,31 @@
   ```
   # 删除一个字符
   Ctrl + d
+
   # 剪贴一整行或选中区域
   Ctrl + K
+
   # 复制一整行或选中区域
   Alt + 6
+
   # 粘贴
   Ctrl + u
+
   # 搜索，输入查找的文本回车，一次只能查找一个
   Ctrl + w
+
   # 上一页
   Ctrl + y
+
   # 下一页
   Ctrl + v
+
   # 保存更改
   Ctrl + O
+
   # 退出
   Ctrl + x
+
   # 取消返回
   Ctrl + c
   ```
@@ -133,6 +178,7 @@
   ```
   # 安装 htop
   sudo yum install htop
+
   # 查看进程
   htop
   ```
@@ -148,8 +194,10 @@
   at 10:38 PM Fri
   at> cowsay 'hello'
   at> CTRL + D
+
   # 列出所有的at任务
   atq
+
   # 删除某个at任务， id来自atq
   atrm id
   ```
@@ -168,32 +216,46 @@
   ```
   # 将终端显示向上滚动
   Shift + PgUp
+
   # 将终端显示向下滚动
   Shift + PgDn
+
   # 暂停当前程序，暂停后按下任意键恢复运行
   Ctrl + s
+
   # 将当前程序放到后台运行
   Ctrl + z
+
   # 查看所有在后台运行的任务
   jobs
+
   # 恢复任务到前台显示， jobID来自jobs执行结果
   fg %  jobID
+
   # 任务到后台执行，jobID来自jobs执行结果
   bg % jobID 
+
   # 将光标移至输入行头，相当于Home键
   Ctrl + a
+
   # 将光标移至输入行末，相当于End键
   Ctrl + e
+
   # 剪切从光标所在位置到行末
   Ctrl + k
+
   # 剪切从光标位置到输入行头
   Ctrl + u
+
   # 粘贴复制的内容
   Ctrl + y
+
   # 剪切光标前一个单词
   Ctrl + w
+
   # 向终端内粘贴文本，，相当于windows的Ctrl + v
   Shift + Insert
+
   # 在终端复制文本，相当于windows的Ctrl + c
   Ctrl + Insert
   ```
@@ -212,12 +274,31 @@
 
 - 查看man手册
 
+  ```
+  # 搜索
+  /<你要搜索的关键字>
 
-   通常 man 手册中的内容很多，你可能不太容易找到你想要的结果，不过幸运的是你可以在 man 中使用搜索/<你        要搜索的关键字>，
-  查找完毕后你可以使用n键切换到下一个关键字所在处，shift+n为上一个关键字所在处。使用Space（空格键）翻页，Enter（回车键）向下滚动一行，
-  或者使用j,k（vim 编辑器的移动键）进行向前向后滚动一行。按下h键为显示使用帮助（因为 man 使用 less 作为阅读器，实为less工具的帮助），按下q退出。
-  想要获得更详细的帮助，你还可以使用info命令，不过通常使用man就足够了。如果你知道某个命令的作用，
-  只是想快速查看一些它的某个具体参数的作用，那么你可以使用--help参数
+  # 下一个关键字
+  n
+
+  # 上一个关键字
+  shift + n
+
+  # 翻页，空格键
+  space
+
+  # 向下滚动一行
+  Enter
+
+  # 退出
+  q
+
+  # 获取比man更多的信息 
+  info ls
+
+  # --help，查看命令的每个参数意思
+  ls --help
+  ```
 
 - who 命令其它常用参数
 
@@ -235,100 +316,160 @@
 
 - 用户权限和分组
 
-  sudo adduser lilei  添加用户
-  groups lilei 显示用户所在的分组
-  sudo adduser lilei lilei 把lilei添加到sudo分组
+  ```
+  # 添加用户
+  sudo adduser lilei 
+
+  # 显示用户所在的分组
+  groups lilei 
+
+  # 把lilei添加到sudo分组
+  sudo adduser lilei lilei 
+  ```
 
 - touch
 
-  主要作用是来更改已有文件的时间戳的（比如，最近访问时间，最近修改时间），但其在不加任何参数的情况下，只指定一个文件名，则可以创建一个指定文件名的空白文件（不会覆盖已有同名文件），当然你也可以同时指定该文件的时间戳。
+  >  主要作用是来更改已有文件的时间戳的（比如，最近访问时间，最近修改时间），但其在不加任何参数的情况下，只指定一个文件名，则可以创建一个指定文件名的空白文件（不会覆盖已有同名文件），当然你也可以同时指定该文件的时间戳。
 
 - 查看文件内容
 
-  cat:正序显示文件内容 （参数-n可以显示行号） 
-  tac：倒序显示文件内容
-  nl:显示行号，并打印（cat -n）
-
-  上边只是显示文件的内容，但是一屏可能显示不完，可以使用
-  more：(只能向下查看更多，空格--下一屏，enter-下一行 q:退出)
-  less：（可向上和向下）
-
-  head/tail 显示文件的头几行或最后几行
-
   ```
-  -n 1：表示列出几行，数字可改变  
-  -f:表示当文件改变的时候，可以滚动显示文件的内容）
-  ```
+  # 正序显示文件内容 （参数-n可以显示行号） 
+  cat filename
 
-  	# 查看文件类型
-  	file /
+  # 倒序显示文件内容，nl:显示行号，并打印（cat -n）
+  tac filename
+
+  # 上边只是显示文件的内容，但是一屏可能显示不完，可以使用more
+  # 只能向下查看更多，空格--下一屏，enter-下一行 q:退出
+  more filename
+
+  # （可向上和向下）
+  less filename
+
+  # 显示文件的头几行或最后几行,-n 1：表示列出几行, -f:表示当文件改变的时候，可以滚动显示文件的内容
+  head/tail filename
+
+  # 查看文件类型
+  file /
+  ```
 
 - 文件编辑
 
+  ```
   h:左   j下：  k：上   l：右
 
   i:插入文本，在光标所在位置之前插入
+
   a:添加内容，在光标所在位置之后插入
+
   v 可以选择块状区域'
+
   o: 在光标所在行下面新增一行（并进入输入模式） 
+
   O: 在光标所在行上方新增一行（并进入输入模式） 
+
   x: 删除光标所在字符，等同于[Delete]功能键 
+
   X: 删除光标前字符，相当与[Backspace] 
+
   r: 修改光标所在字符 
+
   R: 替换当前字符及其后的字符，直到按 [ESC] 
+  ```
 
 - 删除
 
+  ```
   dw:删除从光标开始后一个单词
+
   d$:删除从光标开始的位置到行末
+
   do:删除至行尾
+
   x:删除光标所在地方的字母
+
+  ```
 
 - 复制
 
+  ```
   复制一行则：yy
+
   复制多行(n代表具体数字)：nyy
+
   复制到行首：y$
+
   复制到行末：y^
+
+  ```
 
 - 粘贴
 
+  ```
   p
+  ```
 
 - 剪切
 
+  ```
   剪切一行：dd 
+
   前切n行：ndd
+
   剪切到行尾：d$
+
   剪切到行首：d^
+
   剪切选中文本：d
 
   撤销与恢复： 
+
   'u' : 撤销上一个编辑操作
+
   'ctrl + r' : 恢复，即回退前一个命令 
+
   'U' : 行撤销，撤销所有在前一个编辑行上的操作
+
+  ```
 
 - 翻屏
 
+  ```
   Ctrl+u: 向上翻半屏 
+
   Ctrl+f: 向上翻一屏
+
   Ctrl+d: 向下翻半屏 
+
   Ctrl＋b: 向下翻一屏
+  ```
 
 - 移动光标
 
+  ```
   space: 光标右移一个字符 
+
   Backspace: 光标左移一个字符 
+
   Enter: 光标下移一行
+
   nG: 光标移至第n行首
+
   n+: 光标下移n行 
+
   n-: 光标上移n行
+  ```
 
--  查找
+- 查找
 
+  ```
   /str 查找字符串所在的位置
+
   n:下一个匹配字符
+
   N：上一个匹配字符
+  ```
 
 - 环境变量和文件查找
 
@@ -392,6 +533,7 @@
   ```
   # 查看文件（S:按大小排序）
   ls -AsSh 
+
   # 查看单个文件的大小等信息
   du -h /
   ```
@@ -440,13 +582,6 @@
   		 -s # 同--summarize 仅显示总计，只列出最后加总的值。
   ```
 
-- Linux下的帮助命令
-
-  help cd  只显示内建的命令
-  ls --help 可以是内建命令之外的命令
-  man ls (pgup与pgdn或者上下键来上下翻看)
-  info ls
-
 - Linux任务计划crontab
 
   通常，crontab储存的指令被守护进程激活，crond 为其守护进程，crond常常在后台运行，每一分钟会检查一次是否有预定的作业需要执行。
@@ -473,9 +608,16 @@
 
 - 进程
 
-  ps -ef #列出所有进程长格式的详细信息
-  ps -af 列出当前用户所有跟terminal关联的进程详细信息
-  ps -ax 列出所有进程的信息
+  ```
+  # 列出所有进程长格式的详细信息
+  ps -ef 
+
+  # 列出当前用户所有跟terminal关联的进程详细信息
+  ps -af 
+
+  # 列出所有进程的信息
+  ps -ax 
+  ```
 
 - netstat、telnet查看端口状态
 
@@ -485,8 +627,10 @@
 
   # 查看所有udp端口
   netstate -nulp
+
   # 查看所有tcp端口
   netstate -ntlp
+
   # 查看指定端口的应用程序
   lsof -i :8888
   参数说明：
@@ -497,27 +641,32 @@
   　　-n : 不进行DNS轮询，显示IP(可以加速操作)
   ```
 
-  ​
-
 - chkconfig查看和停止linux启动的服务
 
   ```
   #注意：添加服务到chkconfig之前，需要把启动文件nexus放到/etc/init.d目录
   #修改配置/etc/init.d/nexus， 指定nexus文件的home目录
   NEXUS_HOME="/data/edu/nexus/nexus-2.14.8-01"
+
   # 执行命令，成功加入chkconfig服务列表
   chkconfig --add nexus
   chkconfig --level 35 nexus on
+
   #列出所有的系统服务。
   chkconfig --list
+
   #增加nexus服务。
   chkconfig --add nexus
+
   #删除nexus服务。
   chkconfig --del nexus
+
   #设置nexus在运行级别为2、3、4、5的情况下都是on（开启）的状态。
   chkconfig --level nexus 2345 on        
+
   #列出nexus服务设置情况。
   chkconfig --list nexusx 
+
   #设定mysqld在各等级为on，“各等级”包括2、3、4、5等级。
   chkconfig nexus on
 
@@ -543,23 +692,32 @@
   ```
   # 安装fontconfig，使用fontconfig安装字体库
   yum -y install fontconfig
+
   # 进入share目录可以看到多了fonts和fontconfig目录
   cd /usr/share
+
   # 在/usr/shared/fonts目录下新建一个目录chinese
   mdkir chinese
+
   # 在C:\Windows\Fonts目录下找到字体，且把字体放入刚才创建的chinese目录下
   # 设置访问权限
   chmod -R 755 /usr/share/fonts/chinese
+
   # 接下来需要安装ttmkfdir来搜索目录中所有的字体信息，并汇总生成fonts.scale文件
   yum -y install ttmkfdir
+
   # 执行ttmkfdir命令
   ttmkfdir -e /usr/share/X11/fonts/encodings/encodings.dir
+
   # 编辑/etc/fonts/fonts.conf
   vi /etc/fonts/fonts.conf
+
   # 把新加的字体加到Font list中
   <dir>/usr/share/fonts/chinese</dir>
+
   # 刷新字体缓存
   fc-cache
+
   # fc-list查看字体列表
   fc-list
   ```
