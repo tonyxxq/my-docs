@@ -1036,3 +1036,88 @@
 - 计算预测误差
 
   ![](imgs/36.jpg)
+
+- 把观察数据转换为地图坐标
+
+  > 从车辆坐标系统到地图坐标系统
+  >
+  > 其中Car表车辆的真实所在位置OBS1,OBS2,OBS3表示其观测值，L1,L2,L3,L4,L5表示地标所在的位置。
+  >
+  > 由于我们测量的时候是在车辆前行的方向测量的，那么粒子也需要在其前进的方向去查找地标。所以需要把测量距离加到粒子前进方向一致的位置。所以需要进行坐标转换。
+  >
+  > **注意：我们需要转换的是粒子的观察坐标到map上 **
+
+  ![](imgs/38.jpg)
+
+  > 转换公式：
+  >
+  > [引用文章1](http://farside.ph.utexas.edu/teaching/336k/Newtonhtml/node153.html)
+  >
+  > [引用文章2](https://www.miniphysics.com/coordinate-transformation-under-rotation.html)
+
+  ![](imgs/37.jpg)
+
+  > 代码示例：
+
+  ```python
+  import numpy as np
+
+  # define coordinates and theta
+  x_part= 4
+  y_part= 5
+  x_obs= 2
+  y_obs= 2
+  theta= -np.pi/2 # -90 degrees
+
+  # transform to map x coordinate
+  x_map= x_part + (np.cos(theta) * x_obs) - (np.sin(theta) * y_obs)
+
+  # transform to map y coordinate
+  y_map= y_part + (np.sin(theta) * x_obs) + (np.cos(theta) * y_obs)
+
+  print(int(x_map), int(y_map)) # (6,3)
+  ```
+
+  ​
+
+- 联合
+
+  使用最近邻法计算即可，最简单的就是计算欧式距。
+
+- 计算粒子滤波的权重
+
+  > 使用多元高斯计算概率值。
+  >
+  > 其中，ux和uy表示地标的坐标，x,y表示观测值的坐标。
+
+  ![](imgs/39.jpg)
+
+  > 代码示例：
+
+  ```python
+  import math
+
+  # define inputs
+  sig_x= 0.3
+  sig_y= 0.3
+  x_obs= 6
+  y_obs= 3
+  mu_x= 5
+  mu_y= 3
+
+  # calculate normalization term
+  gauss_norm= (1/(2 * np.pi * sig_x * sig_y))
+
+  # calculate exponent
+  exponent= ((x_obs - mu_x)**2)/(2 * sig_x**2) + ((y_obs - mu_y)**2)/(2 * sig_y**2)
+
+  # calculate weight using normalization terms and exponent
+  weight= gauss_norm * math.exp(-exponent)
+
+  print(weight) # should be around 0.00683644777551 rounding to 6.84E-3
+  ```
+
+  > 粒子滤波的权重为当前粒子的所有观察值概率乘积
+
+
+
