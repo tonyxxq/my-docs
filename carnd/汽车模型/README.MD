@@ -125,4 +125,32 @@
 
 - 驱动器约束条件
 
+- ## Visualization
+
+  When working on the MPC project it helps to visualize both your reference path and the MPC trajectory path.
+
+  You can display these connected point paths in the simulator by sending a list of optional x and y values to the `mpc_x`,`mpc_y`, `next_x`, and `next_y` fields in the C++ main script. If these fields are left untouched then simply no path will be displayed.
+
+  The `mpc_x` and `mpc_y` variables display a line projection in green. The `next_x` and `next_y` variables display a line projection in yellow. You can display these both at the same time, as seen in the image above.
+
+  These (x,y) points are displayed in reference to the vehicle's coordinate system. Recall that the x axis always points in the direction of the car’s heading and the y axis points to the left of the car. So if you wanted to display a point 10 units directly in front of the car, you could set `next_x = {10.0}` and `next_y = {0.0}`.
+
+  Remember that the server returns waypoints using the map's coordinate system, which is different than the car's coordinate system. Transforming these waypoints will make it easier to both display them and to calculate the CTE and Epsi values for the model predictive controller.
+
+  ## IPOPT Installation on Mac
+
+  When executing `brew install ipopt`, some Mac users have experienced the following error:
+
+  ```
+  Listening to port 4567
+  Connected!!!
+  mpc(4561,0x7ffff1eed3c0) malloc: *** error for object 0x7f911e007600: incorrect checksum for freed object - object was probably modified after being freed.
+  *** set a breakpoint in malloc_error_break to debug
+
+  ```
+
+- This error has been resolved by upgrading ipopt with `brew upgrade ipopt --with-openblas` per this [forum post](https://discussions.udacity.com/t/incorrect-checksum-for-freed-object/313433/19).
+
+- ​
+
   ​
