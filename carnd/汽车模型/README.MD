@@ -1,4 +1,76 @@
-- 多项式拟合路径
+## 汽车模型
+
+简介
+
+1. 运动学模型：忽略了轮胎的力，重力和质量的影响。
+2. 动力学模型：考虑了轮胎的力，纵向和横向受到的力，重力，惯性，质量，已经车子的结构等。
+
+- 状态
+
+  > 和追踪车辆状态一样，当前车辆模型预测包括位置x，y，角度ψ，速度v
+
+  ![](imgs/4.jpg)
+
+- 汽车的运动学模型
+
+  > 为了使得我们实际的车的状态和汽车预测状态之间的误差最小，我们需要控制车辆驱动。
+  >
+  > 包括方向盘和加速/刹车输入。
+
+  ![](imgs/5.jpg)
+
+  > 根据上一时刻的汽车状态，预测下一时刻的状态，公式
+  >
+  > **注意：Lf表示汽车的头部到汽车重心的距离，距离越大，转向角越小，反之亦然**
+
+  ![](imgs/6.jpg)
+
+  > 实现全球运动学模型
+
+  ```c++
+  #include <math.h>
+  #include <iostream>
+  #include "Dense"
+
+  double pi() { return M_PI; }
+  double deg2rad(double x) { return x * pi() / 180; }
+  double rad2deg(double x) { return x * 180 / pi(); }
+
+  const double Lf = 2;
+
+  Eigen::VectorXd globalKinematic(Eigen::VectorXd state,
+                                  Eigen::VectorXd actuators, double dt) {
+    Eigen::VectorXd next_state(state.size());
+    
+    // the next state from inputs
+    // NOTE: state is [x, y, psi, v]
+    // NOTE: actuators is [delta, a]
+    next_state[0] = state[0] + state[3]*cos(state[2])*dt;
+    next_state[1] = state[1] + state[3]*sin(state[2])*dt;
+    next_state[2] = state[2] + state[3]/Lf*actuators[0]*dt;
+    next_state[3] = state[3] + actuators[1]*dt;
+    
+    return next_state;
+  }
+
+  int main() {
+    // [x, y, psi, v]
+    Eigen::VectorXd state(4);
+    Eigen::VectorXd actuators(2);
+    state << 0, 0, deg2rad(45), 1;
+    actuators << deg2rad(5), 1;
+    Eigen::VectorXd next_state = globalKinematic(state, actuators, 0.3);
+    std::cout << next_state << std::endl;
+  }
+  ```
+
+- 无人驾驶的整体过程
+
+  > 感知 => 定位 => 路径规划 => 车辆控制
+
+  ![](imgs/7.jpg)
+
+- 使用多项式拟合规划路径
 
   > 一般三次多项式就能满足要求
 
@@ -22,8 +94,7 @@
   // Fit a polynomial.
   // Adapted from
   // https://github.com/JuliaMath/Polynomials.jl/blob/master/src/Polynomials.jl#L676-L716
-  Eigen::VectorXd polyfit(Eigen::VectorXd xvals, Eigen::VectorXd yvals,
-                          int order) {
+  Eigen::VectorXd polyfit(Eigen::VectorXd xvals, Eigen::VectorXd yvals, int order) {
     assert(xvals.size() == yvals.size());
     assert(order >= 1 && order <= xvals.size() - 1);
     Eigen::MatrixXd A(xvals.size(), order + 1);
@@ -51,79 +122,121 @@
     // y waypoint coordinates
     yvals << 5.17, -2.25, -15.306, -29.46, -42.85, -57.6116;
 
-    // TODO: use `polyfit` to fit a third order polynomial to the (x, y)
     // coordinates.
-    
     Eigen::VectorXd fit_curve = polyfit(xvals,yvals,3);
 
     for (double x = 0; x <= 20; x += 1.0) {
-      // TODO: use `polyeval` to evaluate the x values.
       std::cout << polyeval(fit_curve,x) << std::endl; 
-    }
-
-    // Expected output
-    // -0.905562
-    // -0.226606
-    // 0.447594
-    // 1.11706
-    // 1.7818
-    // 2.44185
-    // 3.09723
-    // 3.74794
-    // 4.39402
-    // 5.03548
-    // 5.67235
-    // 6.30463
-    // 6.93236
-    // 7.55555
-    // 8.17423
-    // 8.7884
-    // 9.3981
-    // 10.0033
-    // 10.6041
-    // 11.2005
-    // 11.7925
+    }  
   }
   ```
 
-- 总计
+- 计算错误
 
-  ## What we have learned so far
+  > 把错误的变化包括到状态中 ，那么新的状态向量为 [x,y,ψ,v,cte,eψ]
+  >
+  > 注意到增加了cte和eψ，表示和到预测路径距离的错误和预测路径方向的错误。
 
-  From the previous lessons we have learned to apply the bicycle model, polynomial fitting, low complexity heuristics (e.g. CTE), and short time steps, to enable vehicles to follow a complex (polynomial) trajectories. This is an effective, practical, and commonly used approach, which can be applied to many autonomous vehicle scenarios, in real time.
+- Cross Track Error（CTE）
 
-  ## Coming Next
+  > 通过前一个状态的错误，估计后一状态的错误
+  >
+  > yt表示当前所在的位置，f(xt)表示预测路径所在的位置
 
-  For the next few lessons we will round out our discussion of vehicle models with an overview of the more comprehensive, but less practical, dynamic models. Dynamic models and the elements which comprise them are rigorous and could be modules or courses unto themselves. The content that follows is targeted developing awareness and intuition that can be applied to further study and consists of:
+  ctet+1 = ctet + vt∗sin(eψt)∗dt
 
-  - Dynamic Model Forces
-  - Tire Slip Angle
-  - Tire Slip Ratio
-  - Tire Models
+  ctet = yt−f(xt)
 
-  Additional resources are linked to each lesson to encourage and enable more in depth study. [One of these resources](http://www.me.berkeley.edu/~frborrel/pdfpub/IV_KinematicMPC_jason.pdf) makes a good case for the use of lower complexity kinematic models, as:
+  合并：
 
-  > Compared to higher fidelity vehicle models, the system identification on the kinematic bicycle model is easier because there are only two parameters to identify, lf and lr. This makes it simpler to port the same controller or path planner to other vehicles with differently sized wheelbases.
+  ctet+1 = yt − f(xt) + (vt∗sin(eψt)∗dt)
 
-  To further expand on this, lower complexity models have two strong advantages over higher complexity (dynamic included) models. They can run in real time (essential requirement of any model operating in a vehicle) and they are transferable to vehicles with differing attributes, such as mass. To use a dynamic model engineers would have to be able to control the vehicle attributes of the vehicles they are deploying models into (they probably won't have control over this). High complexity models would need major re-adjustment to account for even small differences. Lower complexity models do not suffer from this constraint and so can be placed in a wider range of vehicles, with far less additional effort, and unpredictability.
+- Orientation Error，方向错误
 
-  Another frequently asked question is where our model comes from and why it differs from other models seen in the program and from other sources.
+  注意：我们并不知道ψdest的规划路径的角度值，可以使用求斜率，再求arctan的方式求得，arctan(f′(xt))。
 
-  The kinematic model we derive and use here is not quite the same as in the Berkeley paper (linked above), although they are similar. It is possible to use different models in different parts of your pipeline, depending on what levels of accuracy you need in different places. It is common to see this in industry. The principles of model we present can be applied to add parameters into the model to make models fit to purpose.
+  ![](imgs/8.jpg)
+
+  ![](imgs/9.jpg)
+
+  合并：
+
+  ![](imgs/10.jpg)
+
+
+
+## 模型预测
+
+> 为了减小错误，我们需要调整驱动器输入，控制车辆的路径和规划路径的距离误差尽可能的小。
+
+
+
+
+
+
+
+## 
+
+
+
+
+
+
+
+
+
+
+
+## What we have learned so far
+
+From the previous lessons we have learned to apply the bicycle model, polynomial fitting, low complexity heuristics (e.g. CTE), and short time steps, to enable vehicles to follow a complex (polynomial) trajectories. This is an effective, practical, and commonly used approach, which can be applied to many autonomous vehicle scenarios, in real time.
+
+## Coming Next
+
+For the next few lessons we will round out our discussion of vehicle models with an overview of the more comprehensive, but less practical, dynamic models. Dynamic models and the elements which comprise them are rigorous and could be modules or courses unto themselves. The content that follows is targeted developing awareness and intuition that can be applied to further study and consists of:
+
+- Dynamic Model Forces
+- Tire Slip Angle
+- Tire Slip Ratio
+- Tire Models
+
+Additional resources are linked to each lesson to encourage and enable more in depth study. [One of these resources](http://www.me.berkeley.edu/~frborrel/pdfpub/IV_KinematicMPC_jason.pdf) makes a good case for the use of lower complexity kinematic models, as:
+
+> Compared to higher fidelity vehicle models, the system identification on the kinematic bicycle model is easier because there are only two parameters to identify, lf and lr. This makes it simpler to port the same controller or path planner to other vehicles with differently sized wheelbases.
+
+To further expand on this, lower complexity models have two strong advantages over higher complexity (dynamic included) models. They can run in real time (essential requirement of any model operating in a vehicle) and they are transferable to vehicles with differing attributes, such as mass. To use a dynamic model engineers would have to be able to control the vehicle attributes of the vehicles they are deploying models into (they probably won't have control over this). High complexity models would need major re-adjustment to account for even small differences. Lower complexity models do not suffer from this constraint and so can be placed in a wider range of vehicles, with far less additional effort, and unpredictability.
+
+Another frequently asked question is where our model comes from and why it differs from other models seen in the program and from other sources.
+
+The kinematic model we derive and use here is not quite the same as in the Berkeley paper (linked above), although they are similar. It is possible to use different models in different parts of your pipeline, depending on what levels of accuracy you need in different places. It is common to see this in industry. The principles of model we present can be applied to add parameters into the model to make models fit to purpose.
 
 - 运动模型—力
 
-  > 汽车所受力可以总结为横向力和纵向力度
+  > 汽车所受力可以总结为横向力和纵向力度，横向力帮助转弯，纵向力帮助车辆前进/后退。
 
   ![](imgs/1.jpg)
 
-- 运动模型—偏离角
+- 运动模型—偏离角（Slip angle）
 
-  > 偏离角可以帮助测量转弯
+  > 偏离角可以帮助车辆转弯
 
   ![](imgs/2.jpg)
 
+- 滑动比例(Slip ratio)，可以使用它来控制车辆的横向和纵向力。
+
+  ![](imgs/11.jpg)
+
+- 轮胎模型
+
+  > a表示转角度，F表示横向力。
+
+  ![](imgs/12.jpg)
+
 - 驱动器约束条件
+
+  >比如车辆的转向角度不能大于90度，车辆的
+
+- 模型预测
 
 - ## Visualization
 
