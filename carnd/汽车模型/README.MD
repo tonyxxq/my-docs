@@ -83,6 +83,7 @@
   using namespace Eigen;
 
   // Evaluate a polynomial.
+  // 传入方程的系数和X值求方程的输出y
   double polyeval(Eigen::VectorXd coeffs, double x) {
     double result = 0.0;
     for (int i = 0; i < coeffs.size(); i++) {
@@ -94,15 +95,18 @@
   // Fit a polynomial.
   // Adapted from
   // https://github.com/JuliaMath/Polynomials.jl/blob/master/src/Polynomials.jl#L676-L716
+  // 这个函数的作用是构建一个一元多次方程组
   Eigen::VectorXd polyfit(Eigen::VectorXd xvals, Eigen::VectorXd yvals, int order) {
     assert(xvals.size() == yvals.size());
     assert(order >= 1 && order <= xvals.size() - 1);
     Eigen::MatrixXd A(xvals.size(), order + 1);
 
+    // 使矩阵的第一列为1
     for (int i = 0; i < xvals.size(); i++) {
       A(i, 0) = 1.0;
     }
 
+    // 计算方程组的每一项
     for (int j = 0; j < xvals.size(); j++) {
       for (int i = 0; i < order; i++) {
         A(j, i + 1) = A(j, i) * xvals(j);
