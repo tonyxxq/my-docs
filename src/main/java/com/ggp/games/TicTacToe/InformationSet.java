@@ -301,8 +301,8 @@ public class InformationSet implements IInformationSet{
     }
 
     private long computeComparisonKey() {
-        long sum = 0;
-        long mul = 1;
+        long sum = owningPlayerId;
+        long mul = 3;
         for (int i = 0; i < 25; ++i) {
             sum += field[i] * mul;
             mul *= 3;
