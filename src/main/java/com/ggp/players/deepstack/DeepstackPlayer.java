@@ -123,7 +123,7 @@ public class DeepstackPlayer implements IPlayer {
             Double[] actionRegrets = regrets.getOrDefault(is, null);
             if (actionRegrets == null) {
                 actionRegrets = new Double[legalActions.size()];
-                Arrays.fill(actionRegrets, 0);
+                Arrays.fill(actionRegrets, 0d);
             }
             double p;
             if (s.getActingPlayerId() == 1) p = p2;
@@ -137,7 +137,7 @@ public class DeepstackPlayer implements IPlayer {
             i = 0;
             if (totalRegret > 0) {
                 for (IAction a: legalActions) {
-                    strat.setProbability(is, a, Math.max(actionRegrets[i++], 0)/totalRegret);
+                    strat.setProbability(is, a, Math.max(actionRegrets[i], 0)/totalRegret);
                     i++;
                 }
             } else {
@@ -208,8 +208,10 @@ public class DeepstackPlayer implements IPlayer {
 
     @Override
     public IAction act() {
-        opponentCFV = new HashMap<>(ntit.getOpponentValues().size());
-        ntit.getOpponentValues().forEach((is, cfv) -> opponentCFV.put(is, cfv.getValue()));
+        if (ntit != null) {
+            opponentCFV = new HashMap<>(ntit.getOpponentValues().size());
+            ntit.getOpponentValues().forEach((is, cfv) -> opponentCFV.put(is, cfv.getValue()));
+        }
         Resolver r = new Resolver();
         return r.act();
     }
@@ -218,6 +220,8 @@ public class DeepstackPlayer implements IPlayer {
     public void receivePercepts(IPercept percept) {
         range.advance(percept);
         hiddenInfo = hiddenInfo.applyPercept(percept);
-        ntit = ntit.getNext(percept);
+        if (ntit != null) {
+            ntit = ntit.getNext(percept); // in case player hasn't played yet when receiving percept
+        }
     }
 }
