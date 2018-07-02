@@ -37,7 +37,7 @@ public class InformationSet implements IInformationSet{
         if (!hasLegalActions()) return ret;
         for(int x = 0; x < 5; ++x) {
             for (int y = 0; y < 5; ++y) {
-                if (field[5*x + y] == FIELD_UNKNOWN) ret.add(MarkFieldAction.getAction(owningPlayerId, x, y));
+                if (field[5*x + y] == FIELD_UNKNOWN) ret.add(MarkFieldAction.Cache.getAction(owningPlayerId, x, y));
             }
         }
         return ret;
