@@ -4,4 +4,5 @@ public interface IGameDescription {
     ICompleteInformationState getInitialState();
     IInformationSet getInitialInformationSet(int role);
     boolean hasRandomPlayer();
+    ICompleteInformationStateFactory getCISFactory();
 }

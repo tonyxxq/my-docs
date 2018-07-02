@@ -1,6 +1,7 @@
 package com.ggp.games.TicTacToe;
 
 import com.ggp.ICompleteInformationState;
+import com.ggp.ICompleteInformationStateFactory;
 import com.ggp.IGameDescription;
 import com.ggp.IInformationSet;
 
@@ -26,11 +27,22 @@ public class GameDescription implements IGameDescription {
 
     @Override
     public IInformationSet getInitialInformationSet(int role) {
-        return initialState.getInformationSet(role);
+        return initialState.getInfoSetForPlayer(role);
     }
 
     @Override
     public boolean hasRandomPlayer() {
         return false;
+    }
+
+    @Override
+    public ICompleteInformationStateFactory getCISFactory() {
+        return new ICompleteInformationStateFactory() {
+            @Override
+            public ICompleteInformationState make(IInformationSet player1, IInformationSet player2, int actingPlayer) {
+                // TODO: check if both IS are compatible with each other
+                return new CompleteInformationState((InformationSet) player1, (InformationSet) player2, actingPlayer);
+            }
+        };
     }
 }

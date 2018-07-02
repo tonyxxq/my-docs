@@ -2,6 +2,8 @@ package com.ggp.games.TicTacToe;
 
 import com.ggp.IPercept;
 
+import java.util.Objects;
+
 public class ActionSuccessPercept implements IPercept {
     private MarkFieldAction lastAction;
     private boolean successful;
@@ -22,5 +24,19 @@ public class ActionSuccessPercept implements IPercept {
     @Override
     public int getTargetPlayer() {
         return lastAction.getRole();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ActionSuccessPercept that = (ActionSuccessPercept) o;
+        return successful == that.successful &&
+                Objects.equals(lastAction, that.lastAction);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(lastAction, successful);
     }
 }

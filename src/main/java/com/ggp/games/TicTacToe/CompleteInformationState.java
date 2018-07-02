@@ -118,7 +118,7 @@ public class CompleteInformationState implements ICompleteInformationState {
         }
     }
 
-    protected InformationSet getInformationSet(int role) {
+    public InformationSet getInfoSetForPlayer(int role) {
         if (role == PLAYER_X) return xInfoSet;
         return oInfoSet;
     }
