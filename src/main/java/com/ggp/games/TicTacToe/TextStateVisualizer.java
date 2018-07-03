@@ -5,8 +5,7 @@ import com.ggp.IInformationSet;
 import com.ggp.IStateVisualizer;
 
 public class TextStateVisualizer implements IStateVisualizer {
-    @Override
-    public void visualize(IInformationSet s, int role) {
+    public static String infoSetToString(IInformationSet s, int role) {
         InformationSet info = (InformationSet) s;
         StringBuilder sb = new StringBuilder();
         char mine = 'X';
@@ -31,7 +30,12 @@ public class TextStateVisualizer implements IStateVisualizer {
             }
             sb.append("|\n");
         }
-        System.out.print(sb.toString());
+        return sb.toString();
+    }
+
+    @Override
+    public void visualize(IInformationSet s, int role) {
+        System.out.print(infoSetToString(s, role));
     }
 
     @Override
