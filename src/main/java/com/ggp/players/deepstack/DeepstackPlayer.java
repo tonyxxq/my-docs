@@ -1,6 +1,7 @@
 package com.ggp.players.deepstack;
 
 import com.ggp.*;
+import com.ggp.players.deepstack.estimators.RandomPlayoutCFVEstimator;
 import com.ggp.utils.RandomItemSelector;
 
 import java.util.*;
@@ -9,7 +10,7 @@ public class DeepstackPlayer implements IPlayer {
     public static class Factory implements IPlayerFactory {
         @Override
         public IPlayer create(IGameDescription game, int role) {
-            return new DeepstackPlayer(role, game);
+            return new DeepstackPlayer(role, game, new RandomPlayoutCFVEstimator());
         }
     }
 
@@ -20,10 +21,12 @@ public class DeepstackPlayer implements IPlayer {
     private HashMap<IInformationSet, Double> opponentCFV;
     private ICompleteInformationStateFactory cisFactory;
     private int iters = 5;
+    private int depthLimit = 2;
+    private ICFVEstimator cfvEstimator;
     private NextTurnInfoTree ntit;
     RandomItemSelector<IAction> randomActionSelector = new RandomItemSelector<>();
 
-    public DeepstackPlayer(int id, IGameDescription gameDesc) {
+    public DeepstackPlayer(int id, IGameDescription gameDesc, ICFVEstimator cfvEstimator) {
         this.id = id;
         this.opponentId = (id == 1) ? 2 : 1;
         range = new InformationSetRange();
@@ -34,6 +37,7 @@ public class DeepstackPlayer implements IPlayer {
         opponentCFV = new HashMap<>(1);
         opponentCFV.put(initialOpponentSet, 0d);
         cisFactory = gameDesc.getCISFactory();
+        this.cfvEstimator = cfvEstimator;
     }
 
     @Override
@@ -75,15 +79,6 @@ public class DeepstackPlayer implements IPlayer {
                 ICompleteInformationState ns = s.next(randomActionSelector.select(s.getLegalActions()));
                 return cfr(ns, state, player, depth+1, p1, p2);
             }
-            IInformationSet is = s.getInfoSetForActingPlayer();
-            double[] cfv = new double[2];
-            List<IAction> legalActions = is.getLegalActions();
-            double[] actionCFV = new double[2*legalActions.size()];
-            int i = 0;
-            HashMap<IAction, NextTurnInfoTree> actionToNTIT = null;
-            if (state == CFRState.TOP) {
-                actionToNTIT = new HashMap<>();
-            }
             CFRState nextState = state;
             NextTurnInfoTree ntit = null;
             if (state == CFRState.WAIT_MY_TURN) {
@@ -94,6 +89,23 @@ public class DeepstackPlayer implements IPlayer {
             } else if (state == CFRState.WAIT_MY_TURN && s.getActingPlayerId() == id) {
                 nextState = CFRState.END;
             }
+
+            // cutoff can only be made once i know opponentCFV for next turn i'll play
+            if (state == CFRState.END && depth > depthLimit) {
+                ICFVEstimator.EstimatorResult res = cfvEstimator.estimate(s, cumulativeStrat);
+                return new CFRResult(res.player1CFV, res.player2CFV);
+            }
+
+            IInformationSet is = s.getInfoSetForActingPlayer();
+            double[] cfv = new double[2];
+            List<IAction> legalActions = is.getLegalActions();
+            double[] actionCFV = new double[2*legalActions.size()];
+            int i = 0;
+            HashMap<IAction, NextTurnInfoTree> actionToNTIT = null;
+            if (state == CFRState.TOP) {
+                actionToNTIT = new HashMap<>();
+            }
+
             for (IAction a: legalActions) {
                 double actionProb = strat.getProbability(is, a);
                 CFRResult res;
