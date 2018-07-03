@@ -136,6 +136,7 @@ public class DeepstackPlayer implements IPlayer {
             if (actionRegrets == null) {
                 actionRegrets = new Double[legalActions.size()];
                 Arrays.fill(actionRegrets, 0d);
+                regrets.put(is, actionRegrets);
             }
             double p;
             if (s.getActingPlayerId() == 1) p = p2;
@@ -154,7 +155,7 @@ public class DeepstackPlayer implements IPlayer {
                 }
             } else {
                 strat.setProbabilities(is, (action) -> 1d/legalActions.size());
-            }
+            } // TODO: this stuff is probably wrong!
             cumulativeStrat.addProbabilities(is, (action) -> p*strat.getProbability(is, action));
             CFRResult ret = new CFRResult(cfv[0], cfv[1]);
             if (state == CFRState.TOP) {
@@ -201,6 +202,7 @@ public class DeepstackPlayer implements IPlayer {
                     }
                     double followProb = Math.max(regretsGadget[2*osIdx], 0);
                     followProb = followProb/(followProb + Math.max(regretsGadget[2*osIdx + 1], 0));
+                    if (Double.isNaN(followProb)) followProb = 0.5; // during first iteration regretsGadget is 0
                     opponentRange[osIdx] = followProb;
                     double gadgetValue = followProb * osCFV + (1 - followProb) * opponentCFV.getOrDefault(os, 0d);
                     regretsGadget[2*osIdx + 1] += opponentCFV.getOrDefault(os, 0d)  - prevGadgetValues[osIdx];
