@@ -2,18 +2,69 @@ package com.ggp;
 
 import java.util.List;
 
+/**
+ * Implementing class must be immutable and must suitably override hashCode and equals methods.
+ */
 public interface ICompleteInformationState {
+    /**
+     * Checks whether state is terminal
+     * @return
+     */
     boolean isTerminal();
-    boolean isRandomNode();
+
+    /**
+     * @return 1,2 or 0 for random node
+     */
     int getActingPlayerId();
+
+    /**
+     * Get payoff, only valid in terminal node
+     * @param player
+     * @return payoff
+     */
     double getPayoff(int player);
+
+    /**
+     * Get legal actions
+     * @return list of legal actions, must not be null or empty in non-terminal nodes
+     */
     List<IAction> getLegalActions();
+
+    /**
+     * Get information set for given player at this state.
+     *
+     * For non-acting player this corresponds to IS after taking his last action and receiving all percepts prior to this state.
+     * @param player
+     * @return information set
+     */
     IInformationSet getInfoSetForPlayer(int player);
+
+    /**
+     * Get CIS resulting from taking an action
+     * @param a action
+     * @return next CIS or null if action is not valid, or current state is terminal
+     */
     ICompleteInformationState next(IAction a);
+
+    /**
+     * Get percepts resulting from taking given action at this state
+     * @param a
+     * @return percepts or null if action is not valid, or state is terminal
+     */
     Iterable<IPercept> getPercepts(IAction a);
+
+    /**
+     * Checks whether given action is legal
+     * @param a
+     * @return
+     */
     boolean isLegal(IAction a);
     default IInformationSet getInfoSetForActingPlayer() {
         return getInfoSetForPlayer(getActingPlayerId());
+    }
+
+    default boolean isRandomNode() {
+        return getActingPlayerId() == 0;
     }
 
 }

@@ -16,6 +16,7 @@ public class GameManager {
     }
 
     public void run() {
+        if (stateVisualizer != null) stateVisualizer.visualize(state);
         while(!playOneTurn()) {}
     }
 
@@ -32,7 +33,7 @@ public class GameManager {
             // random player
             a = randomActionSelector.select(state.getLegalActions());
         }
-        System.out.println("Action: " + a.toString());
+        System.out.println("Action " + turn + ": " + a.toString());
         Iterable<IPercept> percepts = state.getPercepts(a);
         state = state.next(a);
         for (IPercept p: percepts) {

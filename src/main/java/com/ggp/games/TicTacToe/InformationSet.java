@@ -137,7 +137,6 @@ public class InformationSet implements IInformationSet{
         return new InformationSet(f, owningPlayerId, turn + 1, myFields + (_p.isSuccessful() ? 1 : 0), knownEnemyFields + (_p.isSuccessful() ? 0 : 1));
     }
 
-    @Override
     public Iterator<ICompleteInformationState> iterator() {
         return new Iterator<ICompleteInformationState>() {
             private final int minOpponentFields;
@@ -309,13 +308,6 @@ public class InformationSet implements IInformationSet{
         }
         if (owningPlayerId == CompleteInformationState.PLAYER_O) return -sum;
         return sum;
-    }
-
-    @Override
-    public int compareTo(Object o) {
-        if (!(o instanceof InformationSet)) return -1;
-        InformationSet s = (InformationSet) o;
-        return comparisonKey.compareTo(s.comparisonKey);
     }
 
     @Override

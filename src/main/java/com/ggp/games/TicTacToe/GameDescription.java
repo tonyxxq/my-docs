@@ -26,16 +26,6 @@ public class GameDescription implements IGameDescription {
     }
 
     @Override
-    public IInformationSet getInitialInformationSet(int role) {
-        return initialState.getInfoSetForPlayer(role);
-    }
-
-    @Override
-    public boolean hasRandomPlayer() {
-        return false;
-    }
-
-    @Override
     public ICompleteInformationStateFactory getCISFactory() {
         return new ICompleteInformationStateFactory() {
             @Override

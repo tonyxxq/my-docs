@@ -41,5 +41,8 @@ public class TextStateVisualizer implements IStateVisualizer {
     @Override
     public void visualize(ICompleteInformationState s) {
         visualize(s.getInfoSetForActingPlayer(), s.getActingPlayerId());
+        if (s.isTerminal()) {
+            System.out.println("Finished: X: " + s.getPayoff(1) + ", O: " + s.getPayoff(2));
+        }
     }
 }

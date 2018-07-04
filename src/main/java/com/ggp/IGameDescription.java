@@ -2,7 +2,8 @@ package com.ggp;
 
 public interface IGameDescription {
     ICompleteInformationState getInitialState();
-    IInformationSet getInitialInformationSet(int role);
-    boolean hasRandomPlayer();
+    default IInformationSet getInitialInformationSet(int role) {
+        return getInitialState().getInfoSetForPlayer(role);
+    }
     ICompleteInformationStateFactory getCISFactory();
 }
