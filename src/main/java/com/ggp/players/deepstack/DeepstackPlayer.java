@@ -198,7 +198,7 @@ public class DeepstackPlayer implements IPlayer {
                             osCFV += r2*res.player1CFV;
                         }
                         strat = new Strategy();
-                        res.actionToNTIT.forEach((k, v) -> actionToNTIT.merge(k, v, (x, y) -> x.merge(y)));
+                        res.actionToNTIT.forEach((k, v) -> {if (v != null) actionToNTIT.merge(k, v, (x, y) -> x == null ? y : x.merge(y));});
                     }
                     double followProb = Math.max(regretsGadget[2*osIdx], 0);
                     followProb = followProb/(followProb + Math.max(regretsGadget[2*osIdx + 1], 0));

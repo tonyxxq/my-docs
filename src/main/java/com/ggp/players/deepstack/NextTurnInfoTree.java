@@ -33,8 +33,10 @@ public class NextTurnInfoTree {
     }
 
     public NextTurnInfoTree merge(NextTurnInfoTree tree) {
-        tree.opponentValues.forEach((k, v) -> opponentValues.merge(k, v, (a, b) -> a.add(b)));
-        tree.children.forEach((k, v) -> children.merge(k, v, (a, b) -> a.merge(b)));
+        if (tree != null) {
+            tree.opponentValues.forEach((k, v) -> opponentValues.merge(k, v, (a, b) -> a.add(b)));
+            tree.children.forEach((k, v) -> children.merge(k, v, (a, b) -> a.merge(b)));
+        }
         return this;
     }
 
