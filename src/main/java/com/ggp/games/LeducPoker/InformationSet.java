@@ -55,7 +55,7 @@ public class InformationSet implements IInformationSet {
 
     @Override
     public IInformationSet applyPercept(IPercept p) {
-        if (p == null) return this;
+        if (!isValid(p)) return null;
         if (p.getTargetPlayer() != owner) return this;
         if (p.getClass() == CardRevealedPercept.class) {
             CardRevealedPercept crp = (CardRevealedPercept) p;
@@ -64,24 +64,20 @@ public class InformationSet implements IInformationSet {
             } else if (!crp.isPublic() && privateCard == null) {
                 return new InformationSet(owner, crp.getCard(), publicCard, potSize, remainingMoney, startingMoney, round.next(), false, foldedByPlayer);
             } else {
-                return this;
+                return null;
             }
         } else if (p.getClass() == PotUpdatePercept.class) {
             PotUpdatePercept pup = (PotUpdatePercept) p;
-            if (round != Rounds.Bet1 && round != Rounds.Bet2) return this;
             return new InformationSet(owner, privateCard, publicCard, pup.getNewPotSize(), remainingMoney, startingMoney, round, true, foldedByPlayer);
         } else if (p.getClass() == ReturnedMoneyPercept.class) {
-            if (!wasRaised) return this;
             ReturnedMoneyPercept rmp = (ReturnedMoneyPercept) p;
             return new InformationSet(owner, privateCard, publicCard, potSize - rmp.getAmount(), remainingMoney + rmp.getAmount(), startingMoney, round, wasRaised, foldedByPlayer);
         } else if (p.getClass() == BettingRoundEndedPercept.class) {
-            if (round != Rounds.Bet1 && round != Rounds.Bet2) return this;
             return new InformationSet(owner, privateCard, publicCard, potSize, remainingMoney, startingMoney, round.next(), false, foldedByPlayer);
         } else if (p.getClass() == OpponentFoldedPercept.class) {
-            if (round != Rounds.Bet1 && round != Rounds.Bet2) return this;
             return new InformationSet(owner, privateCard, publicCard, potSize, remainingMoney, startingMoney, Rounds.End, false, owner == 1 ? 2 : 1);
         }
-        return this;
+        return null;
     }
 
     @Override
@@ -173,5 +169,28 @@ public class InformationSet implements IInformationSet {
     @Override
     public int hashCode() {
         return Objects.hash(owner, privateCard, publicCard, potSize, remainingMoney, startingMoney, round, wasRaised, foldedByPlayer);
+    }
+
+    @Override
+    public boolean isValid(IPercept p) {
+        if (p.getTargetPlayer() != owner || foldedByPlayer != 0) return false;
+        if (p.getClass() == CardRevealedPercept.class) {
+            CardRevealedPercept crp = (CardRevealedPercept) p;
+            return (crp.isPublic() && publicCard == null) || (!crp.isPublic() && privateCard == null);
+        } else if (p.getClass() == PotUpdatePercept.class) {
+            PotUpdatePercept pup = (PotUpdatePercept) p;
+            // the other player may not have enough money to add full raise amount
+            return (round == Rounds.Bet1 || round == Rounds.Bet2) && pup.getNewPotSize() <= potSize + getRaiseAmount() && pup.getNewPotSize() >= potSize;
+        } else if (p.getClass() == ReturnedMoneyPercept.class) {
+            if (!wasRaised) return false;
+            if (round != Rounds.Bet1 && round != Rounds.Bet2) return false;
+            ReturnedMoneyPercept rmp = (ReturnedMoneyPercept) p;
+            return rmp.getAmount() > 0 && rmp.getAmount() < getRaiseAmount();
+        } else if (p.getClass() == BettingRoundEndedPercept.class) {
+            return round == Rounds.Bet1 || round != Rounds.Bet2;
+        } else if (p.getClass() == OpponentFoldedPercept.class) {
+            return (round == Rounds.Bet1 || round != Rounds.Bet2);
+        }
+        return false;
     }
 }

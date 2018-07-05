@@ -16,7 +16,7 @@ public interface IInformationSet {
     /**
      * Generate information set after receiving a percept.
      * @param p percept
-     * @return new IS or null if percept is invalid.
+     * @return new IS, must return null if given percept cannot occur in this IS
      */
     IInformationSet applyPercept(IPercept p);
 
@@ -32,4 +32,11 @@ public interface IInformationSet {
      * @return
      */
     boolean isLegal(IAction a);
+
+    /**
+     * Check whether player can receive given percept in this IS.
+     * @param p
+     * @return
+     */
+    boolean isValid(IPercept p);
 }

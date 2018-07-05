@@ -57,7 +57,7 @@ public class InformationSet implements IInformationSet{
 
     @Override
     public IInformationSet applyPercept(IPercept p) {
-        if (p == null || !(p instanceof ActionSuccessPercept)) return null;
+        if (!isValid(p)) return null;
         ActionSuccessPercept _p = (ActionSuccessPercept) p;
         if (_p.isSuccessful()) return this;
         int x = _p.getLastAction().getX();
@@ -321,5 +321,15 @@ public class InformationSet implements IInformationSet{
     @Override
     public int hashCode() {
         return Objects.hash(comparisonKey);
+    }
+
+    @Override
+    public boolean isValid(IPercept p) {
+        if (p == null || p.getClass() != ActionSuccessPercept.class || p.getTargetPlayer() != owningPlayerId) return false;
+        ActionSuccessPercept _p = (ActionSuccessPercept) p;
+        int x = _p.getLastAction().getX();
+        int y = _p.getLastAction().getY();
+        if (field[5*x + y] != FIELD_MINE) return false;
+        return true;
     }
 }
