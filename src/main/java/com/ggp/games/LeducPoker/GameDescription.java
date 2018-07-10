@@ -22,7 +22,8 @@ public class GameDescription implements IGameDescription {
         return initialState;
     }
 
-    private boolean isCompatible(IInformationSet is1, IInformationSet is2) {
+    private boolean isCompatible(IInformationSet is1, IInformationSet is2, int actingPlayer) {
+        if (actingPlayer < 0 || actingPlayer > 2) return false;
         if (is1 == null || is2 == null
                 || is1.getClass() != InformationSet.class || is2.getClass() != InformationSet.class) return false;
         InformationSet p1 = (InformationSet) is1, p2 = (InformationSet) is2;
@@ -34,7 +35,18 @@ public class GameDescription implements IGameDescription {
                 && p1.getPrivateCard() == p1.getPublicCard()) return false;
 
         // rounds can only differ when player 1 already has private card while player 2 doesn't
-        if (p1.getRound() != p2.getRound() && (p2.getRound() != Rounds.PrivateCard || p1.getRound() != Rounds.Bet1)) return false;
+        if (p1.getRound() != p2.getRound()
+                && (p2.getRound() != Rounds.PrivateCard || p1.getRound() != Rounds.Bet1 || actingPlayer != 0)) return false;
+        switch (p2.getRound()) {
+            case Bet1:
+            case Bet2:
+                if (actingPlayer == 0) return false;
+                break;
+            case PrivateCard:
+            case PublicCard:
+                if (actingPlayer != 0) return false;
+                break;
+        }
 
         return true;
     }
@@ -44,7 +56,7 @@ public class GameDescription implements IGameDescription {
         return new ICompleteInformationStateFactory() {
             @Override
             public ICompleteInformationState make(IInformationSet player1, IInformationSet player2, int actingPlayer) {
-                if (!isCompatible(player1, player2)) return null;
+                if (!isCompatible(player1, player2, actingPlayer)) return null;
                 return new CompleteInformationState((InformationSet) player1, (InformationSet) player2, actingPlayer);
             }
         };
