@@ -14,6 +14,10 @@ public class RandomPlayer implements IPlayer {
     }
 
     @Override
+    public void init() {
+    }
+
+    @Override
     public IAction act() {
         IAction a = randomActionSelector.select(infoSet.getLegalActions());
         infoSet = infoSet.next(a);

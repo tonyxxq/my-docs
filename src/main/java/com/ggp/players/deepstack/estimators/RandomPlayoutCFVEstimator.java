@@ -18,19 +18,14 @@ public class RandomPlayoutCFVEstimator implements ICFVEstimator {
         }
         double cfv1 = 0, cfv2 = 0;
         for (int i = 0; i < iters; ++i) {
-            double prob1 = 1, prob2 = 1;
             ICompleteInformationState ws = s;
             while (!ws.isTerminal()) {
                 List<IAction> legalActions = ws.getLegalActions();
-                if (ws.getActingPlayerId() == 1) {
-                    prob1 *= 1d/legalActions.size();
-                } else if (ws.getActingPlayerId() == 2) {
-                    prob2 *= 1d/legalActions.size();
-                }
-                ws = ws.next(rnd.select(legalActions));
+                IAction a = rnd.select(legalActions);
+                ws = ws.next(a);
             }
-            cfv1 += ws.getPayoff(1) * prob1;
-            cfv2 += ws.getPayoff(2) * prob2;
+            cfv1 += ws.getPayoff(1);
+            cfv2 += ws.getPayoff(2);
         }
         return new EstimatorResult(cfv1/iters, cfv2/iters);
     }

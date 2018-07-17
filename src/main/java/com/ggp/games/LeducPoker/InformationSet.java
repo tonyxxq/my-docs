@@ -187,9 +187,9 @@ public class InformationSet implements IInformationSet {
             ReturnedMoneyPercept rmp = (ReturnedMoneyPercept) p;
             return rmp.getAmount() > 0 && rmp.getAmount() < getRaiseAmount();
         } else if (p.getClass() == BettingRoundEndedPercept.class) {
-            return round == Rounds.Bet1 || round != Rounds.Bet2;
+            return round == Rounds.Bet1 || round == Rounds.Bet2;
         } else if (p.getClass() == OpponentFoldedPercept.class) {
-            return (round == Rounds.Bet1 || round != Rounds.Bet2);
+            return (round == Rounds.Bet1 || round == Rounds.Bet2);
         }
         return false;
     }

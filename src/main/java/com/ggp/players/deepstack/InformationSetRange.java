@@ -2,12 +2,11 @@ package com.ggp.players.deepstack;
 
 import com.ggp.IAction;
 import com.ggp.IInformationSet;
-import com.ggp.IPercept;
 import com.ggp.IStrategy;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 public class InformationSetRange {
     private HashMap<IInformationSet, Double> range = new HashMap<>();
@@ -16,20 +15,37 @@ public class InformationSetRange {
         range.put(initialSet, 1.0);
     }
 
-    private void advance(Function<IInformationSet, IInformationSet> setMapper, Function<IInformationSet, Double> probMapper) {
+    public double getProbability(IInformationSet s) {
+        return range.getOrDefault(s, 0d);
+    }
+
+    public Set<IInformationSet> getInformationSets() {
+        return range.keySet();
+    }
+
+    public void advance(Set<PerceptSequence> possibleOpponentPerceptSequences, HashMap<IInformationSet, NextRangeTree> nrtMap, IStrategy topLevelStrategy) {
         HashMap<IInformationSet, Double> newRange = new HashMap<>();
         double probSum = 0;
         for(HashMap.Entry<IInformationSet, Double> entry: range.entrySet()) {
-            IInformationSet s = entry.getKey();
-            double prob = entry.getValue();
-            prob *= probMapper.apply(s);
-            IInformationSet ns = setMapper.apply(s);
-            if (prob == 0 || ns == null) continue;
-            probSum += prob;
-            double existingProb = newRange.getOrDefault(ns, 0d);
-            newRange.put(ns, prob + existingProb);
+            NextRangeTree nrt = nrtMap.get(entry.getKey());
+            for (PerceptSequence ps: possibleOpponentPerceptSequences) {
+                Map<IInformationSet, ?extends Map<IAction, Double>> newIS = nrt.getRange(ps);
+                if (newIS == null) continue; // this percept sequence may not be achievable from given input IS
+                for (Map.Entry<IInformationSet, ?extends  Map<IAction, Double>> newIsEntry: newIS.entrySet()) {
+                    double isProb = 0;
+                    for (Map.Entry<IAction, Double> probMap: newIsEntry.getValue().entrySet()) {
+                        double prob = probMap.getValue();
+                        if (probMap.getKey() != null) {
+                            prob *= topLevelStrategy.getProbability(newIsEntry.getKey(), probMap.getKey());
+                        }
+                        isProb += prob;
+                    }
+                    newRange.merge(newIsEntry.getKey(), isProb, (oldV, newV) -> oldV + newV);
+                    probSum += isProb;
+                }
+            }
         }
-        if (probSum > 0) {
+        if (probSum > 0 && probSum != 1) {
             for(HashMap.Entry<IInformationSet, Double> entry: newRange.entrySet()) {
                 IInformationSet s = entry.getKey();
                 double prob = entry.getValue();
@@ -37,42 +53,5 @@ public class InformationSetRange {
             }
         }
         range = newRange;
-    }
-
-    public void advance(IAction a, IStrategy strat) {
-        advance((s) -> s.next(a), (s) -> strat.getProbability(s, a));
-        /*HashMap<IInformationSet, Double> newRange = new HashMap<>();
-        double probSum = 0;
-        for(HashMap.Entry<IInformationSet, Double> entry: range.entrySet()) {
-            IInformationSet s = entry.getKey();
-            double prob = entry.getValue();
-            if (!s.isLegal(a)) continue;
-            prob *= strat.getProbability(s, a);
-            IInformationSet ns = s.next(a);
-            if (prob == 0 || ns == null) continue;
-            probSum += prob;
-            double existingProb = newRange.getOrDefault(ns, 0d);
-            newRange.put(ns, prob + existingProb);
-        }
-        if (probSum > 0) {
-            for(HashMap.Entry<IInformationSet, Double> entry: newRange.entrySet()) {
-                IInformationSet s = entry.getKey();
-                double prob = entry.getValue();
-                newRange.put(s, prob/probSum);
-            }
-        }
-        range = newRange;*/
-    }
-
-    public void advance(IPercept p) {
-        advance((s) -> s.applyPercept(p), (s) -> 1d);
-    }
-
-    public double getProbability(IInformationSet s) {
-        return range.getOrDefault(s, 0d);
-    }
-
-    public Set<IInformationSet> getInformationSets() {
-        return range.keySet();
     }
 }

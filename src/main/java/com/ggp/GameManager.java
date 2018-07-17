@@ -16,6 +16,8 @@ public class GameManager {
     }
 
     public void run() {
+        player1.init();
+        player2.init();
         if (stateVisualizer != null) stateVisualizer.visualize(state);
         while(!playOneTurn()) {}
     }
