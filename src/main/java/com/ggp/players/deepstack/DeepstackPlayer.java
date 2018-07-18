@@ -257,11 +257,11 @@ public class DeepstackPlayer implements IPlayer {
             HashMap<IAction, NextTurnInfoTree> actionToNTIT = new HashMap<>();
             HashMap<IAction, PerceptSequenceMap> actionToPerceptSequenceMap = new HashMap<>();
             myISToNRT = new HashMap<>();
-            double[] prevGadgetValues = new double[opponentCFV.size()];
             for (int i = 0; i < iters; ++i) {
                 int osIdx = 0;
                 for (IInformationSet os: opponentCFV.keySet()) {
                     double osCFV = 0;
+                    boolean isOsValid = false;
                     for (IInformationSet ms: range.getInformationSets()) {
                         IInformationSet player1IS, player2IS;
                         NextRangeTree nrt = myISToNRT.getOrDefault(ms, null);
@@ -283,6 +283,7 @@ public class DeepstackPlayer implements IPlayer {
                         }
                         ICompleteInformationState s = cisFactory.make(player1IS, player2IS, id);
                         if (s == null) continue;
+                        isOsValid = true;
                         CFRResult res = cfr(s, CFRState.TOP, id, 0, r1, r2, new PerceptSequence(), new PerceptSequence(), nrt, null, 1d);
                         // I want res to contain map IAction -> (opponent IS next time its my turn, CFV for that IS)
                         if (id == 1) {
@@ -298,16 +299,16 @@ public class DeepstackPlayer implements IPlayer {
                             res.actionToPerceptSequenceMap.forEach((k, v) -> {if (v != null) actionToPerceptSequenceMap.merge(k, v, (oldV, newV) -> oldV.merge(newV));});
                         }
                     }
-                    // TODO: dont update stuff if this combination of IS doesn't make valid CIS
-                    double followProb = Math.max(regretsGadget[2*osIdx], 0);
-                    followProb = followProb/(followProb + Math.max(regretsGadget[2*osIdx + 1], 0));
-                    if (Double.isNaN(followProb)) followProb = 0.5; // during first iteration regretsGadget is 0
-                    opponentRange[osIdx] = followProb;
-                    double gadgetValue = followProb * osCFV + (1 - followProb) * opponentCFV.getOrDefault(os, 0d);
-                    regretsGadget[2*osIdx + 1] += opponentCFV.getOrDefault(os, 0d)  - prevGadgetValues[osIdx];
-                    regretsGadget[2*osIdx] += osCFV - gadgetValue;
+                    if (isOsValid) {
+                        double followProb = Math.max(regretsGadget[2*osIdx], 0);
+                        followProb = followProb/(followProb + Math.max(regretsGadget[2*osIdx + 1], 0));
+                        if (Double.isNaN(followProb)) followProb = 0.5; // during first iteration regretsGadget is 0
+                        opponentRange[osIdx] = followProb;
+                        double gadgetValue = followProb * osCFV + (1 - followProb) * opponentCFV.getOrDefault(os, 0d);
+                        regretsGadget[2*osIdx + 1] += opponentCFV.getOrDefault(os, 0d)  - gadgetValue;
+                        regretsGadget[2*osIdx] += osCFV - gadgetValue;
+                    }
 
-                    prevGadgetValues[osIdx] = gadgetValue;
                     osIdx++;
                 }
                 strat = nextStrat;
