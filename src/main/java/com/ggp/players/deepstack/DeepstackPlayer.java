@@ -70,6 +70,7 @@ public class DeepstackPlayer implements IPlayer {
 
     private class Resolver {
         private Strategy strat = new Strategy();
+        private Strategy nextStrat = new Strategy();
         private Strategy cumulativeStrat = new Strategy();
         private HashMap<IInformationSet, Double[]> regrets = new HashMap<>();
         private double[] regretsGadget = new double[opponentCFV.size() * 2];
@@ -216,25 +217,30 @@ public class DeepstackPlayer implements IPlayer {
                 Arrays.fill(actionRegrets, 0d);
                 regrets.put(is, actionRegrets);
             }
-            double p;
-            if (s.getActingPlayerId() == 1) p = p2;
-            else p = p1;
+            double probWithoutActingPlayer; // \pi_{-i}
+            if (s.getActingPlayerId() == 1) probWithoutActingPlayer = p2*rndProb;
+            else probWithoutActingPlayer = p1*rndProb;
             int pid = s.getActingPlayerId();
             for (IAction a: legalActions) {
-                actionRegrets[i] = actionRegrets[i] + p*(actionCFV[2*i + pid - 1] - cfv[pid - 1]);
+                actionRegrets[i] = actionRegrets[i] + probWithoutActingPlayer*(actionCFV[2*i + pid - 1] - cfv[pid - 1]);
                 totalRegret += Math.max(actionRegrets[i], 0);
                 i++;
             }
             i = 0;
             if (totalRegret > 0) {
                 for (IAction a: legalActions) {
-                    strat.setProbability(is, a, Math.max(actionRegrets[i], 0)/totalRegret);
+                    nextStrat.setProbability(is, a, Math.max(actionRegrets[i], 0)/totalRegret);
                     i++;
                 }
             } else {
-                strat.setProbabilities(is, (action) -> 1d/legalActions.size());
-            } // TODO: this stuff is probably wrong!
-            cumulativeStrat.addProbabilities(is, (action) -> p*strat.getProbability(is, action));
+                nextStrat.setProbabilities(is, (action) -> 1d/legalActions.size());
+            }
+            double rangeProb = range.getProbability(is);
+            if (rangeProb > 0) {
+                // cummulative strategy is only used for selecting action and updating range -> only in range information sets
+                cumulativeStrat.addProbabilities(is, (action) -> rangeProb*strat.getProbability(is, action));
+            }
+
             CFRResult ret = new CFRResult(cfv[0], cfv[1]);
             if (state == CFRState.TOP) {
                 ret.actionToNTIT = actionToNTIT;
@@ -284,7 +290,6 @@ public class DeepstackPlayer implements IPlayer {
                         } else {
                             osCFV += r2*res.player1CFV;
                         }
-                        strat = new Strategy();
                         if (res.actionToNTIT != null) {
                             res.actionToNTIT.forEach((k, v) -> {if (v != null) actionToNTIT.merge(k, v, (oldV, newV) -> oldV == null ? newV : oldV.merge(newV));});
                         }
@@ -305,6 +310,8 @@ public class DeepstackPlayer implements IPlayer {
                     prevGadgetValues[osIdx] = gadgetValue;
                     osIdx++;
                 }
+                strat = nextStrat;
+                nextStrat = new Strategy();
             }
             cumulativeStrat.normalize();
             lastCummulativeStrategy = cumulativeStrat;

@@ -54,13 +54,20 @@ public class Strategy implements IStrategy {
         if (legalActions.isEmpty()) return null;
         HashMap<IAction, Double> sStrategy = getSetStragety(s);
         double def = 1.0/legalActions.size();
+        double maxProb = 0;
+        IAction maxAction = null;
         for(IAction a: legalActions) {
-            sum += getActionProbability(sStrategy, a, def);
+            double prob = getActionProbability(sStrategy, a, def);
+            if (prob > maxProb) {
+                maxAction = a;
+                maxProb = prob;
+            }
+            sum += prob;
             if (t <= sum) {
                 return a;
             }
         }
-        return null;
+        return maxAction; // in case there are some floating-point errors
     }
 
     /**
@@ -111,7 +118,9 @@ public class Strategy implements IStrategy {
             for(IAction a: legalActions) {
                 probSum += sStrategy.getOrDefault(a, 0d);
             }
-            if (probSum != 1 && probSum != 0) {
+            if (probSum == 0) {
+                entry.setValue(null); // uniform strategy
+            } else if (probSum != 1) {
                 for(IAction a: legalActions) {
                     sStrategy.put(a, sStrategy.getOrDefault(a, 0d)/probSum);
                 }
