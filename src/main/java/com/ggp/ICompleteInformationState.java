@@ -58,7 +58,12 @@ public interface ICompleteInformationState {
      * @param a
      * @return
      */
-    boolean isLegal(IAction a);
+    default boolean isLegal(IAction a) {
+        if (isTerminal() || a == null) return false;
+        if (isRandomNode()) return getLegalActions().contains(a);
+        return getInfoSetForActingPlayer().isLegal(a);
+    }
+
     default IInformationSet getInfoSetForActingPlayer() {
         return getInfoSetForPlayer(getActingPlayerId());
     }

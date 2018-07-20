@@ -88,11 +88,6 @@ public class CompleteInformationState implements ICompleteInformationState {
         return Collections.singleton(new ActionSuccessPercept(_a, false));
     }
 
-    @Override
-    public boolean isLegal(IAction a) {
-        return getActingPlayerInfoSet().isLegal(a);
-    }
-
     private InformationSet getActingPlayerInfoSet() {
         if (actingPlayer == PLAYER_X) return xInfoSet;
         return oInfoSet;
