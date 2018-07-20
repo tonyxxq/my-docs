@@ -253,6 +253,22 @@ public class DeepstackPlayer implements IPlayer {
             return ret;
         }
 
+        private void normalizeOpponentRange() {
+            double total = 0;
+            for (int i = 0; i < opponentRange.length; ++i) {
+                total += opponentRange[i];
+            }
+            if (total > 0) {
+                if (total != 0) {
+                    for (int i = 0; i < opponentRange.length; ++i) {
+                        opponentRange[i] /= total;
+                    }
+                }
+            } else {
+                Arrays.fill(opponentRange, 1d/opponentRange.length);
+            }
+        }
+
         public IAction act() {
             HashMap<IAction, NextTurnInfoTree> actionToNTIT = new HashMap<>();
             HashMap<IAction, PerceptSequenceMap> actionToPerceptSequenceMap = new HashMap<>();
@@ -311,6 +327,7 @@ public class DeepstackPlayer implements IPlayer {
 
                     osIdx++;
                 }
+                normalizeOpponentRange();
                 strat = nextStrat;
                 nextStrat = new Strategy();
             }
