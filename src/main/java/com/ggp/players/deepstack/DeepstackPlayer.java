@@ -122,7 +122,7 @@ public class DeepstackPlayer implements IPlayer {
             }
 
             // cutoff can only be made once i know opponentCFV for next turn i'll play
-            if (state == CFRState.END && depth > depthLimit) {
+            if (state == CFRState.END && depth > depthLimit && cfvEstimator != null) {
                 ICFVEstimator.EstimatorResult res = cfvEstimator.estimate(s, cumulativeStrat);
                 return new CFRResult(res.player1CFV, res.player2CFV);
             }
@@ -143,7 +143,7 @@ public class DeepstackPlayer implements IPlayer {
                 }
                 IAction newMyTopAction = myTopAction == null && s.getActingPlayerId() == id ? a : myTopAction;
                 PerceptSequence wipOpponentPerceptSequence = opponentPerceptSequence;
-                if (s.getActingPlayerId() == opponentId) {
+                if (s.getActingPlayerId() == opponentId && state != CFRState.END) {
                     wipOpponentPerceptSequence = new PerceptSequence(opponentPerceptSequence, Collections.singleton(new OwnActionPercept(opponentId, a)), opponentId);
                 }
 
