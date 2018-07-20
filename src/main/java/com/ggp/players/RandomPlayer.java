@@ -4,6 +4,13 @@ import com.ggp.*;
 import com.ggp.utils.RandomItemSelector;
 
 public class RandomPlayer implements IPlayer {
+    public static class Factory implements IPlayerFactory {
+        @Override
+        public IPlayer create(IGameDescription game, int role) {
+            return new RandomPlayer(game.getInitialInformationSet(role), role);
+        }
+    }
+
     private IInformationSet infoSet;
     private int role;
     RandomItemSelector<IAction> randomActionSelector = new RandomItemSelector<>();
