@@ -17,9 +17,14 @@ plugins {
 // Define the main class for the application
 mainClassName = 'com.ggp.Main'
 
+test {
+    useJUnitPlatform()
+}
+
 dependencies {
     // Use JUnit test framework
-    testCompile 'junit:junit:4.12'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.1.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.1.0'
 }
 
 // In this section you declare where to find the dependencies of your project

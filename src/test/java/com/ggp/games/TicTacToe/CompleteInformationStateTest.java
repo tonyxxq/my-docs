@@ -1,26 +1,22 @@
 package com.ggp.games.TicTacToe;
 
 import com.ggp.IPercept;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.*;
 
-import static org.junit.Assert.*;
-
-public class CompleteInformationStateTest {
-
+class CompleteInformationStateTest {
     private CompleteInformationState initialState;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         GameDescription gd = new GameDescription();
         this.initialState = (CompleteInformationState) gd.getInitialState();
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
     }
 
@@ -123,4 +119,5 @@ public class CompleteInformationStateTest {
         assertSame(0, (int) s.getPayoff(1));
         assertSame(0, (int) s.getPayoff(2));
     }
+
 }
