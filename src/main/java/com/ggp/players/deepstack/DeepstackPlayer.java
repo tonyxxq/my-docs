@@ -223,14 +223,14 @@ public class DeepstackPlayer implements IPlayer {
             else probWithoutActingPlayer = p1*rndProb;
             int pid = s.getActingPlayerId();
             for (IAction a: legalActions) {
-                actionRegrets[i] = actionRegrets[i] + probWithoutActingPlayer*(actionCFV[2*i + pid - 1] - cfv[pid - 1]);
-                totalRegret += Math.max(actionRegrets[i], 0);
+                actionRegrets[i] = Math.max(actionRegrets[i] + probWithoutActingPlayer*(actionCFV[2*i + pid - 1] - cfv[pid - 1]), 0);
+                totalRegret += actionRegrets[i];
                 i++;
             }
             i = 0;
             if (totalRegret > 0) {
                 for (IAction a: legalActions) {
-                    nextStrat.setProbability(is, a, Math.max(actionRegrets[i], 0)/totalRegret);
+                    nextStrat.setProbability(is, a, actionRegrets[i]/totalRegret);
                     i++;
                 }
             } else {
