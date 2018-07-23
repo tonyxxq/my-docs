@@ -236,11 +236,6 @@ public class DeepstackPlayer implements IPlayer {
             } else {
                 nextStrat.setProbabilities(is, (action) -> 1d/legalActions.size());
             }
-            double rangeProb = range.getProbability(is);
-            if (rangeProb > 0) {
-                // cummulative strategy is only used for selecting action and updating range -> only in range information sets
-                cumulativeStrat.addProbabilities(is, (action) -> rangeProb*strat.getProbability(is, action));
-            }
 
             CFRResult ret = new CFRResult(cfv[0], cfv[1]);
             if (state == CFRState.TOP) {
@@ -333,6 +328,9 @@ public class DeepstackPlayer implements IPlayer {
                 strat = nextStrat;
                 nextStrat = new Strategy();
                 tmpActionToNTIT.forEach((k, v) -> {if (v != null) actionToNTIT.merge(k, v, (oldV, newV) -> oldV == null ? newV : oldV.avgMerge(newV));});
+                for (IInformationSet myIs: range.getInformationSets()) {
+                    cumulativeStrat.addProbabilities(myIs, (action) -> strat.getProbability(myIs, action));
+                }
             }
             cumulativeStrat.normalize();
             lastCummulativeStrategy = cumulativeStrat;
