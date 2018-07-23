@@ -55,7 +55,7 @@ public class DeepstackPlayer implements IPlayer {
         for (int i = 0; i < iters; ++i) {
             Resolver.CFRResult res = r.cfr(gameDesc.getInitialState(), CFRState.WAIT_MY_TURN, id, 0, 1, 1, new PerceptSequence(), new PerceptSequence(), nrt, null, 1d);
             psMap = res.perceptSequenceMap;
-            ntit.merge(res.ntit);
+            ntit.avgMerge(res.ntit);
         }
     }
 
@@ -275,6 +275,7 @@ public class DeepstackPlayer implements IPlayer {
             HashMap<IAction, PerceptSequenceMap> actionToPerceptSequenceMap = new HashMap<>();
             myISToNRT = new HashMap<>();
             for (int i = 0; i < iters; ++i) {
+                HashMap<IAction, NextTurnInfoTree> tmpActionToNTIT = new HashMap<>();
                 int osIdx = 0;
                 for (IInformationSet os: opponentCFV.keySet()) {
                     double osCFV = 0;
@@ -309,7 +310,7 @@ public class DeepstackPlayer implements IPlayer {
                             osCFV += r2*res.player1CFV;
                         }
                         if (res.actionToNTIT != null) {
-                            res.actionToNTIT.forEach((k, v) -> {if (v != null) actionToNTIT.merge(k, v, (oldV, newV) -> oldV == null ? newV : oldV.merge(newV));});
+                            res.actionToNTIT.forEach((k, v) -> {if (v != null) tmpActionToNTIT.merge(k, v, (oldV, newV) -> oldV == null ? newV : oldV.sumMerge(newV));});
                         }
                         // only opponent sequences originating from hiddenInfo are actually possible
                         if (res.actionToPerceptSequenceMap != null && ms.equals(hiddenInfo)) {
@@ -331,6 +332,7 @@ public class DeepstackPlayer implements IPlayer {
                 normalizeOpponentRange();
                 strat = nextStrat;
                 nextStrat = new Strategy();
+                tmpActionToNTIT.forEach((k, v) -> {if (v != null) actionToNTIT.merge(k, v, (oldV, newV) -> oldV == null ? newV : oldV.avgMerge(newV));});
             }
             cumulativeStrat.normalize();
             lastCummulativeStrategy = cumulativeStrat;

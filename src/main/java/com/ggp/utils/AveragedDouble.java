@@ -21,6 +21,12 @@ public class AveragedDouble {
         return this;
     }
 
+    public AveragedDouble sum(AveragedDouble v) {
+        val += v.val;
+        count = 1;
+        return this;
+    }
+
     public double getValue() {
         return this.val;
     }

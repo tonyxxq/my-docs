@@ -28,20 +28,28 @@ public class NextTurnInfoTree {
             }
             current = next;
         }
-        current.merge(subtree);
+        current.sumMerge(subtree);
 
     }
 
-    public NextTurnInfoTree merge(NextTurnInfoTree tree) {
+    public NextTurnInfoTree avgMerge(NextTurnInfoTree tree) {
         if (tree != null) {
             tree.opponentValues.forEach((k, v) -> opponentValues.merge(k, v, (a, b) -> a.add(b)));
-            tree.children.forEach((k, v) -> children.merge(k, v, (a, b) -> a.merge(b)));
+            tree.children.forEach((k, v) -> children.merge(k, v, (a, b) -> a.avgMerge(b)));
+        }
+        return this;
+    }
+
+    public NextTurnInfoTree sumMerge(NextTurnInfoTree tree) {
+        if (tree != null) {
+            tree.opponentValues.forEach((k, v) -> opponentValues.merge(k, v, (a, b) -> a.sum(b)));
+            tree.children.forEach((k, v) -> children.merge(k, v, (a, b) -> a.sumMerge(b)));
         }
         return this;
     }
 
     public void addLeaf(IInformationSet is, double opponentCFV) {
-        opponentValues.merge(is, new AveragedDouble(opponentCFV), (a, b) -> a.add(b));
+        opponentValues.merge(is, new AveragedDouble(opponentCFV), (a, b) -> a.sum(b));
     }
 
     public Map<IInformationSet, AveragedDouble> getOpponentValues() {
