@@ -202,7 +202,8 @@ public class DeepstackPlayer implements IPlayer {
                 i++;
             }
             if (state == CFRState.WAIT_MY_TURN && nextState == CFRState.END) {
-                ntit.addLeaf(s.getInfoSetForPlayer(opponentId), cfv[opponentId - 1]);
+                double probWithoutOpponent = rndProb * (id == 1 ? p2 : p1);
+                ntit.addLeaf(s.getInfoSetForPlayer(opponentId), probWithoutOpponent * cfv[opponentId - 1]);
                 perceptSequenceMap = new PerceptSequenceMap(myPerceptSequence, opponentPerceptSequence);
                 if (nrt != null) {
                     nrt.add(opponentPerceptSequence, s.getInfoSetForPlayer(id), myTopAction, rndProb);
