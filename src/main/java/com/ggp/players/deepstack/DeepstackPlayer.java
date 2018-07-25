@@ -1,16 +1,21 @@
 package com.ggp.players.deepstack;
 
 import com.ggp.*;
-import com.ggp.players.deepstack.estimators.RandomPlayoutCFVEstimator;
 
 import java.util.*;
 import java.util.function.BiFunction;
 
 public class DeepstackPlayer implements IPlayer {
     public static class Factory implements IPlayerFactory {
+        private int iterations;
+
+        public Factory(int iterations) {
+            this.iterations = iterations;
+        }
+
         @Override
         public IPlayer create(IGameDescription game, int role) {
-            return new DeepstackPlayer(role, game, new RandomPlayoutCFVEstimator());
+            return new DeepstackPlayer(role, game, iterations, null);
         }
     }
 
@@ -20,7 +25,7 @@ public class DeepstackPlayer implements IPlayer {
     private IInformationSet hiddenInfo;
     private HashMap<IInformationSet, Double> opponentCFV;
     private ICompleteInformationStateFactory cisFactory;
-    private int iters = 5;
+    private int iters;
     private int depthLimit = 2;
     private ICFVEstimator cfvEstimator;
     private NextTurnInfoTree ntit;
@@ -31,9 +36,10 @@ public class DeepstackPlayer implements IPlayer {
     private PerceptSequenceMap psMap;
     private Strategy lastCummulativeStrategy;
 
-    public DeepstackPlayer(int id, IGameDescription gameDesc, ICFVEstimator cfvEstimator) {
+    public DeepstackPlayer(int id, IGameDescription gameDesc, int iterations, ICFVEstimator cfvEstimator) {
         this.id = id;
         this.opponentId = (id == 1) ? 2 : 1;
+        this.iters = iterations;
         range = new InformationSetRange();
         IInformationSet initialSet = gameDesc.getInitialInformationSet(id);
         hiddenInfo = initialSet;

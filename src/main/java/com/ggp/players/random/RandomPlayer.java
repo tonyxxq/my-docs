@@ -1,4 +1,4 @@
-package com.ggp.players;
+package com.ggp.players.random;
 
 import com.ggp.*;
 import com.ggp.utils.RandomItemSelector;
