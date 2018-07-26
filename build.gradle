@@ -34,3 +34,10 @@ repositories {
     // You can declare any Maven/Ivy/file repository here.
     jcenter()
 }
+
+// There doesn't seem to be a way to make --args work from Idea yet.
+run {
+    if (project.hasProperty("appArgs")) {
+        args Eval.me(appArgs)
+    }
+}
