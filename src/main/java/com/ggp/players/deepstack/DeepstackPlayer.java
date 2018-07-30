@@ -3,6 +3,7 @@ package com.ggp.players.deepstack;
 import com.ggp.*;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 public class DeepstackPlayer implements IPlayer {
@@ -35,6 +36,7 @@ public class DeepstackPlayer implements IPlayer {
     private IAction myLastAction;
     private PerceptSequenceMap psMap;
     private Strategy lastCummulativeStrategy;
+    private ArrayList<IResolvingListener> resolvingListeners = new ArrayList<>();
 
     public DeepstackPlayer(int id, IGameDescription gameDesc, int iterations, ICFVEstimator cfvEstimator) {
         this.id = id;
@@ -51,6 +53,11 @@ public class DeepstackPlayer implements IPlayer {
         opponentCFV = new HashMap<>(1);
         opponentCFV.put(initialOpponentSet, 0d);
         this.gameDesc = gameDesc;
+    }
+
+    public void registerResolvingListener(IResolvingListener listener) {
+        if (listener != null && !resolvingListeners.contains(listener))
+            resolvingListeners.add(listener);
     }
 
     @Override
@@ -100,6 +107,13 @@ public class DeepstackPlayer implements IPlayer {
             }
         }
 
+        private class ResolvingInfo implements IResolvingInfo {
+            @Override
+            public Strategy getUnnormalizedCumulativeStrategy() {
+                return cumulativeStrat;
+            }
+        }
+
         private PerceptSequence getNextPerceptSequence(CFRState cfrState, PerceptSequence current, int player, Iterable<IPercept> percepts) {
             if (cfrState != CFRState.END) {
                 for (IPercept p: percepts) {
@@ -110,7 +124,15 @@ public class DeepstackPlayer implements IPlayer {
             return null;
         }
 
+        private void onEvent(BiConsumer<IResolvingListener, IResolvingInfo> call) {
+            ResolvingInfo info = new ResolvingInfo();
+            for (IResolvingListener listener: resolvingListeners) {
+                call.accept(listener, info);
+            }
+        }
+
         public CFRResult cfr(ICompleteInformationState s, CFRState state, int player, int depth, double p1, double p2, PerceptSequence myPerceptSequence, PerceptSequence opponentPerceptSequence, NextRangeTree nrt, IAction myTopAction, double rndProb) {
+            onEvent((listener, info) -> listener.stateVisited(s, info));
             if (s.isTerminal()) {
                 return new CFRResult(s.getPayoff(1), s.getPayoff(2));
             }
@@ -272,6 +294,7 @@ public class DeepstackPlayer implements IPlayer {
         }
 
         public IAction act() {
+            onEvent((listener, info) -> listener.resolvingStart(info));
             HashMap<IAction, NextTurnInfoTree> actionToNTIT = new HashMap<>();
             HashMap<IAction, PerceptSequenceMap> actionToPerceptSequenceMap = new HashMap<>();
             myISToNRT = new HashMap<>();
@@ -337,6 +360,7 @@ public class DeepstackPlayer implements IPlayer {
                 for (IInformationSet myIs: range.getInformationSets()) {
                     cumulativeStrat.addProbabilities(myIs, (action) -> strat.getProbability(myIs, action));
                 }
+                onEvent((listener, info) -> listener.resolvingIterationEnd(info));
             }
             cumulativeStrat.normalize();
             lastCummulativeStrategy = cumulativeStrat;
@@ -345,6 +369,7 @@ public class DeepstackPlayer implements IPlayer {
             ntit = actionToNTIT.get(ret);
             psMap = actionToPerceptSequenceMap.get(ret);
             hiddenInfo = hiddenInfo.next(ret);
+            onEvent((listener, info) -> listener.resolvingEnd(info));
             return ret;
         }
     }
