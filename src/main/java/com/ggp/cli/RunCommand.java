@@ -1,9 +1,6 @@
 package com.ggp.cli;
 
-import com.ggp.GameManager;
-import com.ggp.IGameDescription;
-import com.ggp.IPlayerFactory;
-import com.ggp.IStateVisualizer;
+import com.ggp.*;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "run",
@@ -64,7 +61,7 @@ public class RunCommand implements Runnable {
 
         GameManager manager = new GameManager(pl1, pl2, gameDesc);
         if (visualizer != null) {
-            manager.setStateVisualizer(visualizer);
+            manager.registerGameListener(new GamePlayVisualizer(visualizer));
         }
 
         manager.run();
