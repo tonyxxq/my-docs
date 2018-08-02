@@ -31,12 +31,16 @@ public class RunCommand implements Runnable {
     @CommandLine.Option(names={"--player2-args"}, description="additional arguments for player 2")
     private String player2Args;
 
-    private IPlayerFactory getPlayerFactory(String player, String args) {
+    private IPlayerFactoryCommand getPlayerFactoryCommand(String player, String args) {
         IPlayerFactoryCommand plCmd = mainCommand.getPlayerFactoryRegistry().getCommand(player);
         if (plCmd == null) {
             throw new CommandLine.ParameterException(new CommandLine(this), "Unknown player '" + player + "'.", null, player);
         }
         CommandLine.populateCommand(plCmd, CliHelper.splitArgString(args));
+        return plCmd;
+    }
+
+    private IPlayerFactory getPlayerFactory(IPlayerFactoryCommand plCmd, String player) {
         IPlayerFactory pl =  plCmd.getPlayerFactory();
         if (pl == null) {
             throw new CommandLine.ParameterException(new CommandLine(this), "Failed to setup player '" + player + "'.", null, player);
@@ -56,13 +60,18 @@ public class RunCommand implements Runnable {
             throw new CommandLine.ParameterException(new CommandLine(this), "Failed to setup game '" + game + "'.", null, game);
         }
         IStateVisualizer visualizer = gameCommand.getStateVisualizer();
-        IPlayerFactory pl1 = getPlayerFactory(player1, player1Args);
-        IPlayerFactory pl2 = getPlayerFactory(player2, player2Args);
+        IPlayerFactoryCommand plCmd1 = getPlayerFactoryCommand(player1, player1Args);
+        IPlayerFactoryCommand plCmd2 = getPlayerFactoryCommand(player2, player2Args);
+
+        IPlayerFactory pl1 = getPlayerFactory(plCmd1, player1);
+        IPlayerFactory pl2 = getPlayerFactory(plCmd2, player2);
 
         GameManager manager = new GameManager(pl1, pl2, gameDesc);
         if (visualizer != null) {
             manager.registerGameListener(new GamePlayVisualizer(visualizer));
         }
+        manager.registerGameListener(plCmd1.getGameListener());
+        manager.registerGameListener(plCmd2.getGameListener());
 
         manager.run();
         System.out.println("Result 1:" + manager.getPayoff(1) + ", 2:" + manager.getPayoff(2));

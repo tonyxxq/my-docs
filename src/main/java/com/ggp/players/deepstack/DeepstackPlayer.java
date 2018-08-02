@@ -9,14 +9,18 @@ import java.util.function.BiFunction;
 public class DeepstackPlayer implements IPlayer {
     public static class Factory implements IPlayerFactory {
         private int iterations;
+        private IResolvingListener listener;
 
-        public Factory(int iterations) {
+        public Factory(int iterations, IResolvingListener listener) {
             this.iterations = iterations;
+            this.listener = listener;
         }
 
         @Override
         public IPlayer create(IGameDescription game, int role) {
-            return new DeepstackPlayer(role, game, iterations, null);
+            DeepstackPlayer ret = new DeepstackPlayer(role, game, iterations, null);
+            if (listener != null) ret.registerResolvingListener(listener);
+            return ret;
         }
     }
 
@@ -65,11 +69,15 @@ public class DeepstackPlayer implements IPlayer {
         Resolver r = new Resolver();
         NextRangeTree nrt = myISToNRT.get(gameDesc.getInitialInformationSet(id));
         ntit = new NextTurnInfoTree();
+        r.onEvent((listener, info) -> listener.resolvingStart(info));
         for (int i = 0; i < iters; ++i) {
             Resolver.CFRResult res = r.cfr(gameDesc.getInitialState(), CFRState.WAIT_MY_TURN, id, 0, 1, 1, new PerceptSequence(), new PerceptSequence(), nrt, null, 1d);
             psMap = res.perceptSequenceMap;
             ntit.avgMerge(res.ntit);
+            r.onEvent((listener, info) -> listener.resolvingIterationEnd(info));
         }
+        r.onEvent((listener, info) -> listener.resolvingEnd(info));
+        r.onEvent((listener, info) -> listener.initEnd(info));
     }
 
     @Override
@@ -124,7 +132,7 @@ public class DeepstackPlayer implements IPlayer {
             return null;
         }
 
-        private void onEvent(BiConsumer<IResolvingListener, IResolvingInfo> call) {
+        protected void onEvent(BiConsumer<IResolvingListener, IResolvingInfo> call) {
             ResolvingInfo info = new ResolvingInfo();
             for (IResolvingListener listener: resolvingListeners) {
                 call.accept(listener, info);
