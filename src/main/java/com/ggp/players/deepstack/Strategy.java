@@ -128,4 +128,9 @@ public class Strategy implements IStrategy {
         }
     }
 
+    @Override
+    public Iterable<IInformationSet> getDefinedInformationSets() {
+        return strategy.keySet();
+    }
+
 }
