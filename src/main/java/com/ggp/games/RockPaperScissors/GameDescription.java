@@ -1,9 +1,6 @@
 package com.ggp.games.RockPaperScissors;
 
-import com.ggp.ICompleteInformationState;
-import com.ggp.ICompleteInformationStateFactory;
-import com.ggp.IGameDescription;
-import com.ggp.IInformationSet;
+import com.ggp.*;
 
 public class GameDescription implements IGameDescription {
     private CompleteInformationState initialState;
@@ -42,5 +39,9 @@ public class GameDescription implements IGameDescription {
                 return new CompleteInformationState((InformationSet) player1, (InformationSet) player2);
             }
         };
+    }
+
+    public ExploitabilityEstimator getExploitabilityEstimator() {
+        return new ExploitabilityEstimator(initialState);
     }
 }

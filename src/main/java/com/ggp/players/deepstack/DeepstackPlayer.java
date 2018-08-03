@@ -1,7 +1,7 @@
 package com.ggp.players.deepstack;
 
 import com.ggp.*;
-import com.ggp.players.deepstack.debug.OptimalStrategyMSEListener;
+import com.ggp.players.deepstack.debug.RPSListener;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -22,7 +22,7 @@ public class DeepstackPlayer implements IPlayer {
             DeepstackPlayer ret = new DeepstackPlayer(role, game, iterations, null);
             if (listener != null) ret.registerResolvingListener(listener);
             if (game.getClass() == com.ggp.games.RockPaperScissors.GameDescription.class) {
-                ret.registerResolvingListener(new OptimalStrategyMSEListener(new Strategy()));
+                ret.registerResolvingListener(new RPSListener(((com.ggp.games.RockPaperScissors.GameDescription) game).getExploitabilityEstimator()));
             }
             return ret;
         }
