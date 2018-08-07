@@ -3,7 +3,7 @@ package com.ggp.players.deepstack.estimators;
 import com.ggp.IAction;
 import com.ggp.ICompleteInformationState;
 import com.ggp.players.deepstack.ICFVEstimator;
-import com.ggp.players.deepstack.Strategy;
+import com.ggp.players.deepstack.utils.Strategy;
 import com.ggp.utils.RandomItemSelector;
 
 import java.util.List;

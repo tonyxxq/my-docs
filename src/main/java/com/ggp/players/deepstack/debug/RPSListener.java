@@ -5,7 +5,7 @@ import com.ggp.IStrategy;
 import com.ggp.games.RockPaperScissors.ExploitabilityEstimator;
 import com.ggp.players.deepstack.IResolvingInfo;
 import com.ggp.players.deepstack.IResolvingListener;
-import com.ggp.players.deepstack.Strategy;
+import com.ggp.players.deepstack.utils.Strategy;
 import com.ggp.utils.Metrics;
 
 public class RPSListener implements IResolvingListener {

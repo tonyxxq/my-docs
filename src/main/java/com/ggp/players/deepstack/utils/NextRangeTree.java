@@ -1,4 +1,4 @@
-package com.ggp.players.deepstack;
+package com.ggp.players.deepstack.utils;
 
 import com.ggp.IAction;
 import com.ggp.IInformationSet;
@@ -33,7 +33,7 @@ public class NextRangeTree {
         return this;
     }
 
-    Map<IInformationSet, ?extends Map<IAction, Double>> getRange(PerceptSequence ps) {
+    public Map<IInformationSet, ?extends Map<IAction, Double>> getRange(PerceptSequence ps) {
         return range.getOrDefault(ps, null);
     }
 }

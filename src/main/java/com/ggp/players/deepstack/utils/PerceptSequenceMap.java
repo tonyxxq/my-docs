@@ -1,4 +1,4 @@
-package com.ggp.players.deepstack;
+package com.ggp.players.deepstack.utils;
 
 import java.util.HashMap;
 import java.util.HashSet;

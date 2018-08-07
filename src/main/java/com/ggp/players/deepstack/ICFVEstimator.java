@@ -1,6 +1,7 @@
 package com.ggp.players.deepstack;
 
 import com.ggp.ICompleteInformationState;
+import com.ggp.players.deepstack.utils.Strategy;
 
 public interface ICFVEstimator {
     class EstimatorResult {

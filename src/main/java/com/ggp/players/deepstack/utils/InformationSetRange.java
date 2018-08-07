@@ -1,8 +1,10 @@
-package com.ggp.players.deepstack;
+package com.ggp.players.deepstack.utils;
 
 import com.ggp.IAction;
 import com.ggp.IInformationSet;
 import com.ggp.IStrategy;
+import com.ggp.players.deepstack.utils.NextRangeTree;
+import com.ggp.players.deepstack.utils.PerceptSequence;
 
 import java.util.HashMap;
 import java.util.Map;

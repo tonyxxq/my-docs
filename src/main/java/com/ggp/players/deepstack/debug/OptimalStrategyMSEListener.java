@@ -3,7 +3,7 @@ package com.ggp.players.deepstack.debug;
 import com.ggp.ICompleteInformationState;
 import com.ggp.players.deepstack.IResolvingInfo;
 import com.ggp.players.deepstack.IResolvingListener;
-import com.ggp.players.deepstack.Strategy;
+import com.ggp.players.deepstack.utils.Strategy;
 import com.ggp.utils.Metrics;
 
 public class OptimalStrategyMSEListener implements IResolvingListener {

@@ -1,4 +1,4 @@
-package com.ggp.players.deepstack;
+package com.ggp.players.deepstack.utils;
 
 import com.ggp.IAction;
 import com.ggp.IInformationSet;
