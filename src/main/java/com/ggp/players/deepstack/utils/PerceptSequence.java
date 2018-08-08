@@ -40,6 +40,13 @@ public class PerceptSequence {
         addPercepts(percepts, forPlayer);
     }
 
+    public static PerceptSequence getNext(PerceptSequence prefix, Iterable<IPercept> percepts, int forPlayer) {
+        for (IPercept p: percepts) {
+            if (p.getTargetPlayer() == forPlayer) return new PerceptSequence(prefix, percepts, forPlayer);
+        }
+        return prefix;
+    }
+
     private void addPercepts(Iterable<IPercept> percepts, int forPlayer) {
         for (IPercept p: percepts) {
             if (p.getTargetPlayer() != forPlayer) continue;

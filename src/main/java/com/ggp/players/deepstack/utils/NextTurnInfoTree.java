@@ -18,16 +18,7 @@ public class NextTurnInfoTree {
     }
 
     public void add(Iterable<IPercept> perceptPath, int perceptsForPlayer, NextTurnInfoTree subtree) {
-        NextTurnInfoTree current = this;
-        for (IPercept p: perceptPath) {
-            if (p.getTargetPlayer() != perceptsForPlayer) continue;
-            NextTurnInfoTree next = current.children.getOrDefault(p, null);
-            if (next == null) {
-                next = new NextTurnInfoTree();
-                current.children.put(p, next);
-            }
-            current = next;
-        }
+        NextTurnInfoTree current = getOrCreatePath(perceptPath, perceptsForPlayer);
         current.sumMerge(subtree);
 
     }
@@ -58,5 +49,14 @@ public class NextTurnInfoTree {
 
     public NextTurnInfoTree getNext(IPercept p) {
         return children.getOrDefault(p, null);
+    }
+
+    public NextTurnInfoTree getOrCreatePath(Iterable<IPercept> percepts, int forPlayer) {
+        NextTurnInfoTree current = this;
+        for (IPercept p: percepts) {
+            if (p.getTargetPlayer() != forPlayer) continue;
+            current = current.children.computeIfAbsent(p, k -> new NextTurnInfoTree());
+        }
+        return current;
     }
 }

@@ -25,6 +25,11 @@ public class PerceptSequenceMap {
         return this;
     }
 
+    public void add(PerceptSequence from, PerceptSequence to) {
+        HashSet<PerceptSequence> set = perceptSequenceMap.computeIfAbsent(from, k -> new HashSet<>());
+        set.add(to);
+    }
+
     public Set<PerceptSequence> getPossibleSequences(PerceptSequence ps) {
         return perceptSequenceMap.getOrDefault(ps, null);
     }

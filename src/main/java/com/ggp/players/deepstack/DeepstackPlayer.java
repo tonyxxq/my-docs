@@ -3,6 +3,7 @@ package com.ggp.players.deepstack;
 import com.ggp.*;
 import com.ggp.players.deepstack.debug.RPSListener;
 import com.ggp.players.deepstack.utils.*;
+import com.ggp.utils.PlayerHelpers;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -49,7 +50,7 @@ public class DeepstackPlayer implements IPlayer {
 
     public DeepstackPlayer(int id, IGameDescription gameDesc, int iterations, ICFVEstimator cfvEstimator) {
         this.id = id;
-        this.opponentId = (id == 1) ? 2 : 1;
+        this.opponentId = PlayerHelpers.getOpponentId(id);
         this.iters = iterations;
         range = new InformationSetRange();
         IInformationSet initialSet = gameDesc.getInitialInformationSet(id);
@@ -72,15 +73,15 @@ public class DeepstackPlayer implements IPlayer {
     @Override
     public void init() {
         Resolver r = new Resolver();
-        NextRangeTree nrt = myISToNRT.get(gameDesc.getInitialInformationSet(id));
-        ntit = new NextTurnInfoTree();
         r.onEvent((listener, info) -> listener.resolvingStart(info));
+        GameTreeTraversalTracker tracker = GameTreeTraversalTracker.createForInit(id, gameDesc.getInitialState());
         for (int i = 0; i < iters; ++i) {
-            Resolver.CFRResult res = r.cfr(gameDesc.getInitialState(), CFRState.WAIT_MY_TURN, id, 0, 1, 1, new PerceptSequence(), new PerceptSequence(), nrt, null, 1d);
-            psMap = res.perceptSequenceMap;
-            ntit.avgMerge(res.ntit);
+            r.cfr(tracker, id, 0, 1, 1);
             r.onEvent((listener, info) -> listener.resolvingIterationEnd(info));
         }
+        ntit = tracker.getNtit();
+        myISToNRT.put(gameDesc.getInitialInformationSet(id), tracker.getNrt());
+        psMap = tracker.getPsMap();
         r.onEvent((listener, info) -> listener.resolvingEnd(info));
         r.onEvent((listener, info) -> listener.initEnd(info));
     }
@@ -88,10 +89,6 @@ public class DeepstackPlayer implements IPlayer {
     @Override
     public int getRole() {
         return id;
-    }
-
-    private enum CFRState {
-        TOP, WAIT_MY_TURN, END;
     }
 
     private class Resolver {
@@ -109,10 +106,6 @@ public class DeepstackPlayer implements IPlayer {
         private class CFRResult {
             public double player1CFV;
             public double player2CFV;
-            public NextTurnInfoTree ntit; // only returned in non-terminal WAIT_MY_TURN state
-            public HashMap<IAction, NextTurnInfoTree> actionToNTIT; // only returned in non-terminal TOP state
-            public PerceptSequenceMap perceptSequenceMap; // only returned in non-terminal WAIT_MY_TURN state
-            public HashMap<IAction, PerceptSequenceMap> actionToPerceptSequenceMap; // only returned in non-terminal TOP state
 
             public CFRResult(double player1CFV, double player2CFV) {
                 this.player1CFV = player1CFV;
@@ -127,16 +120,6 @@ public class DeepstackPlayer implements IPlayer {
             }
         }
 
-        private PerceptSequence getNextPerceptSequence(CFRState cfrState, PerceptSequence current, int player, Iterable<IPercept> percepts) {
-            if (cfrState != CFRState.END) {
-                for (IPercept p: percepts) {
-                    if (p.getTargetPlayer() == player) return new PerceptSequence(current, percepts, player);
-                }
-                return current;
-            }
-            return null;
-        }
-
         protected void onEvent(BiConsumer<IResolvingListener, IResolvingInfo> call) {
             ResolvingInfo info = new ResolvingInfo();
             for (IResolvingListener listener: resolvingListeners) {
@@ -144,68 +127,38 @@ public class DeepstackPlayer implements IPlayer {
             }
         }
 
-        public CFRResult cfr(ICompleteInformationState s, CFRState state, int player, int depth, double p1, double p2, PerceptSequence myPerceptSequence, PerceptSequence opponentPerceptSequence, NextRangeTree nrt, IAction myTopAction, double rndProb) {
+        public CFRResult cfr(GameTreeTraversalTracker tracker, int player, int depth, double p1, double p2) {
+            ICompleteInformationState s = tracker.getCurrentState();
             onEvent((listener, info) -> listener.stateVisited(s, info));
+
             if (s.isTerminal()) {
                 return new CFRResult(s.getPayoff(1), s.getPayoff(2));
             }
-            CFRState nextState = state;
-            NextTurnInfoTree ntit = null;
-            PerceptSequenceMap perceptSequenceMap = null;
-            if (state == CFRState.TOP) {
-                nextState = CFRState.WAIT_MY_TURN;
-            } else if (state == CFRState.WAIT_MY_TURN && s.getActingPlayerId() == id) {
-                nextState = CFRState.END;
-            }
-            if (state != CFRState.END) {
-                ntit = new NextTurnInfoTree();
-                perceptSequenceMap = new PerceptSequenceMap();
-            }
 
             // cutoff can only be made once i know opponentCFV for next turn i'll play
-            if (state == CFRState.END && depth > depthLimit && cfvEstimator != null) {
+            if (tracker.wasMyNextTurnReached() && depth > depthLimit && cfvEstimator != null) {
                 ICFVEstimator.EstimatorResult res = cfvEstimator.estimate(s, cumulativeStrat);
                 return new CFRResult(res.player1CFV, res.player2CFV);
             }
             List<IAction> legalActions = s.getLegalActions();
+            double rndProb = tracker.getRndProb();
 
-            final CFRState finalNextState = nextState;
-            int opponentId = 2 - id + 1;
             BiFunction<ICompleteInformationState, IAction, CFRResult> callCfr = (x, a) -> {
-                Iterable<IPercept> percepts = x.getPercepts(a);
                 double np1 = p1, np2 = p2;
-                double newRndProb = rndProb;
                 if (s.getActingPlayerId() == 1) {
                     np1 *= strat.getProbability(s.getInfoSetForActingPlayer(), a);
                 } else if (s.getActingPlayerId() == 2) {
                     np2 *= strat.getProbability(s.getInfoSetForActingPlayer(), a);
-                } else {
-                    newRndProb *= 1d/legalActions.size();
                 }
-                IAction newMyTopAction = myTopAction == null && s.getActingPlayerId() == id ? a : myTopAction;
-                PerceptSequence wipOpponentPerceptSequence = opponentPerceptSequence;
-                if (s.getActingPlayerId() == opponentId && state != CFRState.END) {
-                    wipOpponentPerceptSequence = new PerceptSequence(opponentPerceptSequence, Collections.singleton(new OwnActionPercept(opponentId, a)), opponentId);
-                }
-
-                return cfr(s.next(a), finalNextState, player, depth+1, np1, np2, getNextPerceptSequence(state, myPerceptSequence, id, percepts), getNextPerceptSequence(state, wipOpponentPerceptSequence, opponentId, percepts), finalNextState == CFRState.WAIT_MY_TURN ? nrt : null, newMyTopAction, newRndProb);
+                return cfr(tracker.next(a), player, depth+1, np1, np2);
             };
 
             if (s.isRandomNode()) {
                 CFRResult ret = new CFRResult(0,0);
-                if (state == CFRState.WAIT_MY_TURN) {
-                    ret.ntit = new NextTurnInfoTree();
-                    ret.perceptSequenceMap = new PerceptSequenceMap();
-                }
-                // random node can't be TOP state so no need to handle that
                 for (IAction a: legalActions) {
                     CFRResult res =  callCfr.apply(s, a);
                     ret.player1CFV += res.player1CFV;
                     ret.player2CFV += res.player2CFV;
-                    if (state == CFRState.WAIT_MY_TURN) {
-                        ret.ntit.add(s.getPercepts(a), id, res.ntit);
-                        ret.perceptSequenceMap.merge(res.perceptSequenceMap);
-                    }
                 }
                 // uniform probability for each action -> average
                 ret.player1CFV /= legalActions.size();
@@ -217,12 +170,6 @@ public class DeepstackPlayer implements IPlayer {
             double[] cfv = new double[2];
             double[] actionCFV = new double[2*legalActions.size()];
             int i = 0;
-            HashMap<IAction, NextTurnInfoTree> actionToNTIT = null;
-            HashMap<IAction, PerceptSequenceMap> actionToPerceptSequenceMap = null;
-            if (state == CFRState.TOP) {
-                actionToNTIT = new HashMap<>();
-                actionToPerceptSequenceMap = new HashMap<>();
-            }
 
             for (IAction a: legalActions) {
                 double actionProb = strat.getProbability(is, a);
@@ -232,23 +179,13 @@ public class DeepstackPlayer implements IPlayer {
                 for (int j = 0; j < 2; ++j) {
                     cfv[j] = cfv[j] + actionProb*actionCFV[2*i + j];
                 }
-                if (nextState == CFRState.WAIT_MY_TURN) {
-                    ntit.add(s.getPercepts(a), id, res.ntit);
-                    perceptSequenceMap.merge(res.perceptSequenceMap);
-                }
-                if (state == CFRState.TOP) {
-                    actionToNTIT.put(a, ntit);
-                    actionToPerceptSequenceMap.put(a, perceptSequenceMap);
-                }
                 i++;
             }
-            if (state == CFRState.WAIT_MY_TURN && nextState == CFRState.END) {
-                double probWithoutOpponent = rndProb * (id == 1 ? p2 : p1);
-                ntit.addLeaf(s.getInfoSetForPlayer(opponentId), probWithoutOpponent * cfv[opponentId - 1]);
-                perceptSequenceMap = new PerceptSequenceMap(myPerceptSequence, opponentPerceptSequence);
-                if (nrt != null) {
-                    nrt.add(opponentPerceptSequence, s.getInfoSetForPlayer(id), myTopAction, rndProb);
-                }
+            if (tracker.isMyNextTurnReached()) {
+                double probWithoutOpponent = rndProb * PlayerHelpers.selectByPlayerId(id, p1, p2);
+                tracker.getNtit().addLeaf(s.getInfoSetForPlayer(opponentId), probWithoutOpponent * cfv[opponentId - 1]);
+                tracker.getPsMap().add(tracker.getMyPerceptSequence(), tracker.getOpponentPerceptSequence());
+                tracker.getNrt().add(tracker.getOpponentPerceptSequence(), s.getInfoSetForPlayer(id), tracker.getMyTopAction(), rndProb);
             }
             // TODO: is it ok to compute both strategies at once??
             double totalRegret = 0;
@@ -259,9 +196,7 @@ public class DeepstackPlayer implements IPlayer {
                 Arrays.fill(actionRegrets, 0d);
                 regrets.put(is, actionRegrets);
             }
-            double probWithoutActingPlayer; // \pi_{-i}
-            if (s.getActingPlayerId() == 1) probWithoutActingPlayer = p2*rndProb;
-            else probWithoutActingPlayer = p1*rndProb;
+            double probWithoutActingPlayer = rndProb * PlayerHelpers.selectByPlayerId(s.getActingPlayerId(), p2, p1); // \pi_{-i}
             int pid = s.getActingPlayerId();
             for (IAction a: legalActions) {
                 actionRegrets[i] = Math.max(actionRegrets[i] + probWithoutActingPlayer*(actionCFV[2*i + pid - 1] - cfv[pid - 1]), 0);
@@ -279,13 +214,6 @@ public class DeepstackPlayer implements IPlayer {
             }
 
             CFRResult ret = new CFRResult(cfv[0], cfv[1]);
-            if (state == CFRState.TOP) {
-                ret.actionToNTIT = actionToNTIT;
-                ret.actionToPerceptSequenceMap = actionToPerceptSequenceMap;
-            } else if (state == CFRState.WAIT_MY_TURN) {
-                ret.ntit = ntit;
-                ret.perceptSequenceMap = perceptSequenceMap;
-            }
 
             return ret;
         }
@@ -308,22 +236,14 @@ public class DeepstackPlayer implements IPlayer {
 
         public IAction act() {
             onEvent((listener, info) -> listener.resolvingStart(info));
-            HashMap<IAction, NextTurnInfoTree> actionToNTIT = new HashMap<>();
-            HashMap<IAction, PerceptSequenceMap> actionToPerceptSequenceMap = new HashMap<>();
-            myISToNRT = new HashMap<>();
+            GameTreeTraversalTracker tracker = GameTreeTraversalTracker.createForAct(id);
             for (int i = 0; i < iters; ++i) {
-                HashMap<IAction, NextTurnInfoTree> tmpActionToNTIT = new HashMap<>();
                 int osIdx = 0;
                 for (IInformationSet os: opponentCFV.keySet()) {
                     double osCFV = 0;
                     boolean isOsValid = false;
                     for (IInformationSet ms: range.getInformationSets()) {
                         IInformationSet player1IS, player2IS;
-                        NextRangeTree nrt = myISToNRT.getOrDefault(ms, null);
-                        if (nrt == null) {
-                            nrt = new NextRangeTree();
-                            myISToNRT.put(ms, nrt);
-                        }
                         double r1, r2;
                         if (id == 1) {
                             player1IS = ms;
@@ -338,20 +258,13 @@ public class DeepstackPlayer implements IPlayer {
                         }
                         ICompleteInformationState s = cisFactory.make(player1IS, player2IS, id);
                         if (s == null) continue;
+                        GameTreeTraversalTracker stateTracker = tracker.visit(s);
                         isOsValid = true;
-                        CFRResult res = cfr(s, CFRState.TOP, id, 0, r1, r2, new PerceptSequence(), new PerceptSequence(), nrt, null, 1d);
-                        // I want res to contain map IAction -> (opponent IS next time its my turn, CFV for that IS)
+                        CFRResult res = cfr(stateTracker, id, 0, r1, r2);
                         if (id == 1) {
                             osCFV += r1*res.player2CFV;
                         } else {
                             osCFV += r2*res.player1CFV;
-                        }
-                        if (res.actionToNTIT != null) {
-                            res.actionToNTIT.forEach((k, v) -> {if (v != null) tmpActionToNTIT.merge(k, v, (oldV, newV) -> oldV == null ? newV : oldV.sumMerge(newV));});
-                        }
-                        // only opponent sequences originating from hiddenInfo are actually possible
-                        if (res.actionToPerceptSequenceMap != null && ms.equals(hiddenInfo)) {
-                            res.actionToPerceptSequenceMap.forEach((k, v) -> {if (v != null) actionToPerceptSequenceMap.merge(k, v, (oldV, newV) -> oldV.merge(newV));});
                         }
                     }
                     if (isOsValid) {
@@ -369,7 +282,6 @@ public class DeepstackPlayer implements IPlayer {
                 normalizeOpponentRange();
                 strat = nextStrat;
                 nextStrat = new Strategy();
-                tmpActionToNTIT.forEach((k, v) -> {if (v != null) actionToNTIT.merge(k, v, (oldV, newV) -> oldV == null ? newV : oldV.avgMerge(newV));});
                 for (IInformationSet myIs: range.getInformationSets()) {
                     cumulativeStrat.addProbabilities(myIs, (action) -> strat.getProbability(myIs, action));
                 }
@@ -379,8 +291,9 @@ public class DeepstackPlayer implements IPlayer {
             lastCummulativeStrategy = cumulativeStrat;
             IAction ret = cumulativeStrat.sampleAction(hiddenInfo);
             myLastAction = ret;
-            ntit = actionToNTIT.get(ret);
-            psMap = actionToPerceptSequenceMap.get(ret);
+            ntit = tracker.getActionToNtit().get(ret);
+            psMap = tracker.getActionToPsMap().get(ret);
+            myISToNRT = tracker.getMyISToNRT();
             hiddenInfo = hiddenInfo.next(ret);
             onEvent((listener, info) -> listener.resolvingEnd(info));
             return ret;
@@ -390,7 +303,7 @@ public class DeepstackPlayer implements IPlayer {
     @Override
     public IAction act() {
         opponentCFV = new HashMap<>(ntit.getOpponentValues().size());
-        ntit.getOpponentValues().forEach((is, cfv) -> opponentCFV.put(is, cfv.getValue()));
+        ntit.getOpponentValues().forEach((is, cfv) -> opponentCFV.put(is, cfv.getValue() / iters));
         range.advance(psMap.getPossibleSequences(myPSBuilder.close()), myISToNRT, lastCummulativeStrategy);
         Resolver r = new Resolver();
         return r.act();
