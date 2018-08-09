@@ -75,6 +75,7 @@ public class DeepstackPlayer implements IPlayer {
         Resolver r = new Resolver();
         r.onEvent((listener, info) -> listener.resolvingStart(info));
         GameTreeTraversalTracker tracker = GameTreeTraversalTracker.createForInit(id, gameDesc.getInitialState());
+        r.findMyNextTurn(tracker);
         for (int i = 0; i < iters; ++i) {
             r.cfr(tracker, id, 0, 1, 1);
             r.onEvent((listener, info) -> listener.resolvingIterationEnd(info));
@@ -184,8 +185,6 @@ public class DeepstackPlayer implements IPlayer {
             if (tracker.isMyNextTurnReached()) {
                 double probWithoutOpponent = rndProb * PlayerHelpers.selectByPlayerId(id, p1, p2);
                 tracker.getNtit().addLeaf(s.getInfoSetForPlayer(opponentId), probWithoutOpponent * cfv[opponentId - 1]);
-                tracker.getPsMap().add(tracker.getMyPerceptSequence(), tracker.getOpponentPerceptSequence());
-                tracker.getNrt().add(tracker.getOpponentPerceptSequence(), s.getInfoSetForPlayer(id), tracker.getMyTopAction(), rndProb);
             }
             // TODO: is it ok to compute both strategies at once??
             double totalRegret = 0;
@@ -234,9 +233,44 @@ public class DeepstackPlayer implements IPlayer {
             }
         }
 
+        protected void findMyNextTurn(GameTreeTraversalTracker tracker) {
+            ICompleteInformationState s = tracker.getCurrentState();
+            if (s.isTerminal()) return;
+            if (tracker.isMyNextTurnReached()) {
+                tracker.getNtit().addLeaf(s.getInfoSetForPlayer(opponentId), 0);
+                tracker.getPsMap().add(tracker.getMyPerceptSequence(), tracker.getOpponentPerceptSequence());
+                tracker.getNrt().add(tracker.getOpponentPerceptSequence(), s.getInfoSetForPlayer(id), tracker.getMyTopAction(), tracker.getRndProb());
+                return;
+            }
+            for (IAction a: s.getLegalActions()) {
+                findMyNextTurn(tracker.next(a));
+            }
+        }
+
+        private GameTreeTraversalTracker prepareDataStructures() {
+            GameTreeTraversalTracker tracker = GameTreeTraversalTracker.createForAct(id);
+            for (IInformationSet os: opponentCFV.keySet()) {
+                for (IInformationSet ms : range.getInformationSets()) {
+                    IInformationSet player1IS, player2IS;
+                    if (id == 1) {
+                        player1IS = ms;
+                        player2IS = os;
+                    } else {
+                        player1IS = os;
+                        player2IS = ms;
+                    }
+                    ICompleteInformationState s = cisFactory.make(player1IS, player2IS, id);
+                    if (s == null) continue;
+                    GameTreeTraversalTracker stateTracker = tracker.visit(s);
+                    findMyNextTurn(stateTracker);
+                }
+            }
+            return tracker;
+        }
+
         public IAction act() {
             onEvent((listener, info) -> listener.resolvingStart(info));
-            GameTreeTraversalTracker tracker = GameTreeTraversalTracker.createForAct(id);
+            GameTreeTraversalTracker tracker = prepareDataStructures();
             for (int i = 0; i < iters; ++i) {
                 int osIdx = 0;
                 for (IInformationSet os: opponentCFV.keySet()) {
