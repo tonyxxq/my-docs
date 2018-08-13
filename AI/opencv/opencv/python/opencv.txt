@@ -1,0 +1,54 @@
+执行命令：
+pip install --upgrade setuptools
+pip install numpy matplotlib
+pip install opencv-python
+
+
+
+如果上述方法安装失败：
+从这个地址下载whl安装文件：https://www.lfd.uci.edu/~gohlke/pythonlibs/#opencv
+执行命令：pip install 包的位置(如：C:\download\xxx.whl)
+
+
+---------------------------几个常用的opencv函数-------------------------------
+1.inRange() 在指定范围内的像素为255，不在范围内为0，输出为二值图像
+
+void cv::inRange(InputArray src,
+	InputArray 	lowerb,
+	InputArray 	upperb,
+	OutputArray 	dst 
+)
+例：
+img = cv2.imread('test_images/solidWhiteRight.jpg',cv2.IMREAD_GRAYSCALE)
+img2 =  np.copy(img)
+cv2.inRange(img,100,200,img2)
+plt.imshow(img2)
+
+2.cv2.fillConvexPoly，填充一个图形
+例：
+ar = np.zeros((200,200))
+triangle = np.array([ [100,50], [40,80], [10,9] ], np.int32)
+cv2.fillConvexPoly(ar, triangle, 1)
+plt.imshow(ar)
+
+3.cv2.fillPoly，可填充多个图形，注意和fillConvexPoly不同的是[triangle,triangle2]必须为数组,因为可以填充的图形可以是一个或多个而fillConvexPoly只能填充一个图形
+例：
+ar = np.zeros((200,200))
+triangle = np.array([ [100,50], [40,80], [10,9] ], np.int32)
+triangle2 = np.array([ [180,50], [180,80], [100,50] ], np.int32)
+cv2.fillPoly(ar, [triangle,triangle2], 1)
+plt.imshow(ar)
+
+4.cv2.line画直线，给定两个点
+例：
+ar = np.zeros((200,200))
+cv2.line(ar, (10,20),(130,40), 1)
+plt.imshow(ar)
+
+5.cv2.addWeighted将两幅图像进行叠加
+ar = np.zeros((200,200))
+ar2 = np.ones((200,200))
+result = cv2.addWeighted(ar, 0, ar2, 1, 5)
+plt.imshow(result)
+
+6.cv2.bitwise_and() 按与对图像进行叠加，在图像掩模时用
