@@ -4,6 +4,7 @@ import com.ggp.IGameListener;
 import com.ggp.IPlayerFactory;
 import com.ggp.cli.IPlayerFactoryCommand;
 import com.ggp.players.deepstack.debug.ResolvingListener;
+import com.ggp.players.deepstack.resolvers.CFRResolver;
 import picocli.CommandLine;
 
 @CommandLine.Command(
@@ -19,7 +20,7 @@ public class DeepstackPlayerCommand implements IPlayerFactoryCommand {
 
     @Override
     public IPlayerFactory getPlayerFactory() {
-        return new DeepstackPlayer.Factory(iterations, listener);
+        return new DeepstackPlayer.Factory(new CFRResolver.Factory(iterations, null, 2), listener);
     }
 
     @Override

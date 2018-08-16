@@ -25,7 +25,7 @@ public class InformationSetRange {
         return range.keySet();
     }
 
-    public void advance(Set<PerceptSequence> possibleOpponentPerceptSequences, HashMap<IInformationSet, NextRangeTree> nrtMap, IStrategy topLevelStrategy) {
+    public void advance(Set<PerceptSequence> possibleOpponentPerceptSequences, Map<IInformationSet, NextRangeTree> nrtMap, IStrategy topLevelStrategy) {
         HashMap<IInformationSet, Double> newRange = new HashMap<>();
         double probSum = 0;
         for(HashMap.Entry<IInformationSet, Double> entry: range.entrySet()) {
