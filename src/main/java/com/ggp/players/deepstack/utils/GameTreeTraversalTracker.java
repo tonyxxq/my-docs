@@ -75,6 +75,12 @@ public class GameTreeTraversalTracker {
                 rndProb, myTopAction, trackingState, s, actionToNtit, ntit, actionToPsMap, psMap, myISToNRT, nrt);
     }
 
+    public GameTreeTraversalTracker visitRandom(ICompleteInformationState s, double visitProb) {
+        if (state != null) throw new IllegalStateException("Can't visit a state from non-root tracker!");
+        return new GameTreeTraversalTracker(myId, myPerceptSequence, opponentPerceptSequence,
+                rndProb * visitProb, myTopAction, trackingState, s, actionToNtit, ntit, actionToPsMap, psMap, myISToNRT, nrt);
+    }
+
     public GameTreeTraversalTracker next(IAction a) {
         ICompleteInformationState nextState = state.next(a);
         double newRndProb = rndProb;

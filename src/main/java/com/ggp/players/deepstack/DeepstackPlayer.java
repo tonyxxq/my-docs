@@ -48,12 +48,12 @@ public class DeepstackPlayer implements IPlayer {
     public DeepstackPlayer(int id, IGameDescription gameDesc, ISubgameResolver.Factory resolverFactory) {
         this.id = id;
         this.opponentId = PlayerHelpers.getOpponentId(id);
-        range = new InformationSetRange();
+        range = new InformationSetRange(id);
         IInformationSet initialSet = gameDesc.getInitialInformationSet(id);
         hiddenInfo = initialSet;
         cisFactory = gameDesc.getCISFactory();
         IInformationSet initialOpponentSet = gameDesc.getInitialInformationSet(2 - id + 1);
-        range.init(initialSet);
+        range.init(gameDesc.getInitialState());
         myISToNRT.put(initialSet, new NextRangeTree());
         opponentCFV = new HashMap<>(1);
         opponentCFV.put(initialOpponentSet, 0d);

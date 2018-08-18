@@ -1,6 +1,7 @@
 package com.ggp.players.deepstack.utils;
 
 import com.ggp.IAction;
+import com.ggp.ICompleteInformationState;
 import com.ggp.IInformationSet;
 import com.ggp.IStrategy;
 import com.ggp.players.deepstack.utils.NextRangeTree;
@@ -11,49 +12,58 @@ import java.util.Map;
 import java.util.Set;
 
 public class InformationSetRange {
-    private HashMap<IInformationSet, Double> range = new HashMap<>();
+    private HashMap<ICompleteInformationState, Double> range = new HashMap<>();
+    private double norm = 1d;
+    private int myId;
 
-    public void init(IInformationSet initialSet) {
-        range.put(initialSet, 1.0);
+    public InformationSetRange(int myId) {
+        this.myId = myId;
     }
 
-    public double getProbability(IInformationSet s) {
+    public void init(ICompleteInformationState initialState) {
+        range.put(initialState, 1.0);
+    }
+
+    public double getProbability(ICompleteInformationState s) {
         return range.getOrDefault(s, 0d);
     }
 
-    public Set<IInformationSet> getInformationSets() {
+    public Set<ICompleteInformationState> getPossibleStates() {
         return range.keySet();
     }
 
+    public Set<?extends Map.Entry<ICompleteInformationState, Double>> getProbabilities() {
+        return range.entrySet();
+    }
+
     public void advance(Set<PerceptSequence> possibleOpponentPerceptSequences, Map<IInformationSet, NextRangeTree> nrtMap, IStrategy topLevelStrategy) {
-        HashMap<IInformationSet, Double> newRange = new HashMap<>();
+        HashMap<ICompleteInformationState, Double> newRange = new HashMap<>();
         double probSum = 0;
-        for(HashMap.Entry<IInformationSet, Double> entry: range.entrySet()) {
-            NextRangeTree nrt = nrtMap.get(entry.getKey());
+        for(HashMap.Entry<ICompleteInformationState, Double> entry: range.entrySet()) {
+            NextRangeTree nrt = nrtMap.get(entry.getKey().getInfoSetForPlayer(myId));
             for (PerceptSequence ps: possibleOpponentPerceptSequences) {
-                Map<IInformationSet, ?extends Map<IAction, Double>> newIS = nrt.getRange(ps);
-                if (newIS == null) continue; // this percept sequence may not be achievable from given input IS
-                for (Map.Entry<IInformationSet, ?extends  Map<IAction, Double>> newIsEntry: newIS.entrySet()) {
+                Map<ICompleteInformationState, ?extends Map<IAction, Double>> newState = nrt.getRange(ps);
+                if (newState == null) continue; // this percept sequence may not be achievable from given input IS
+                for (Map.Entry<ICompleteInformationState, ?extends  Map<IAction, Double>> newStateEntry: newState.entrySet()) {
                     double isProb = 0;
-                    for (Map.Entry<IAction, Double> probMap: newIsEntry.getValue().entrySet()) {
+                    for (Map.Entry<IAction, Double> probMap: newStateEntry.getValue().entrySet()) {
                         double prob = probMap.getValue();
                         if (probMap.getKey() != null) {
-                            prob *= topLevelStrategy.getProbability(newIsEntry.getKey(), probMap.getKey());
+                            prob *= topLevelStrategy.getProbability(newStateEntry.getKey().getInfoSetForPlayer(myId), probMap.getKey());
                         }
                         isProb += prob;
                     }
-                    newRange.merge(newIsEntry.getKey(), isProb, (oldV, newV) -> oldV + newV);
+                    newRange.merge(newStateEntry.getKey(), isProb, (oldV, newV) -> oldV + newV);
                     probSum += isProb;
                 }
             }
         }
-        if (probSum > 0 && probSum != 1) {
-            for(HashMap.Entry<IInformationSet, Double> entry: newRange.entrySet()) {
-                IInformationSet s = entry.getKey();
-                double prob = entry.getValue();
-                newRange.put(s, prob/probSum);
-            }
-        }
+        if (probSum > 0) norm = probSum;
+        else norm = 1;
         range = newRange;
+    }
+
+    public double getNorm() {
+        return norm;
     }
 }
