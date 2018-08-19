@@ -11,7 +11,6 @@ import com.ggp.players.deepstack.utils.Strategy;
 import com.ggp.utils.PlayerHelpers;
 
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 public class CFRResolver implements ISubgameResolver {
@@ -49,6 +48,7 @@ public class CFRResolver implements ISubgameResolver {
     private double[] regretsGadget;
     private HashMap<IInformationSet, Double> opponentFollowProb;
     private int opponentId;
+    private ResolvingInfo resInfo = new ResolvingInfo();
 
     public CFRResolver(int myId, int iters, InformationSetRange range, HashMap<IInformationSet, Double> opponentCFV,
                        ICompleteInformationStateFactory cisFactory, ArrayList<IResolvingListener> resolvingListeners,
@@ -60,6 +60,7 @@ public class CFRResolver implements ISubgameResolver {
         this.opponentCFV = opponentCFV;
         this.cisFactory = cisFactory;
         this.resolvingListeners = resolvingListeners;
+        if (this.resolvingListeners == null) this.resolvingListeners = new ArrayList<>();
         this.cfvEstimator = cfvEstimator;
         this.depthLimit = depthLimit;
         regretsGadget = new double[2 * opponentCFV.size()];
@@ -88,16 +89,9 @@ public class CFRResolver implements ISubgameResolver {
         }
     }
 
-    protected void onEvent(BiConsumer<IResolvingListener, IResolvingInfo> call) {
-        ResolvingInfo info = new ResolvingInfo();
-        for (IResolvingListener listener: resolvingListeners) {
-            call.accept(listener, info);
-        }
-    }
-
     public CFRResult cfr(GameTreeTraversalTracker tracker, int player, int depth, double p1, double p2) {
         ICompleteInformationState s = tracker.getCurrentState();
-        onEvent((listener, info) -> listener.stateVisited(s, info));
+        resolvingListeners.forEach(listener -> listener.stateVisited(s, resInfo));
 
         if (s.isTerminal()) {
             return new CFRResult(s.getPayoff(1), s.getPayoff(2));
@@ -186,6 +180,7 @@ public class CFRResolver implements ISubgameResolver {
 
     protected void findMyNextTurn(GameTreeTraversalTracker tracker) {
         ICompleteInformationState s = tracker.getCurrentState();
+        resolvingListeners.forEach(listener -> listener.stateVisited(s, resInfo));
         if (s.isTerminal()) return;
         if (tracker.isMyNextTurnReached()) {
             tracker.getNtit().addLeaf(s.getInfoSetForPlayer(opponentId), 0);
@@ -209,7 +204,7 @@ public class CFRResolver implements ISubgameResolver {
 
     @Override
     public ActResult act() {
-        onEvent((listener, info) -> listener.resolvingStart(info));
+        resolvingListeners.forEach(listener -> listener.resolvingStart(resInfo));
         GameTreeTraversalTracker tracker = prepareDataStructures();
         HashMap<IInformationSet, Double> currentOpponentCFV = new HashMap<>(opponentCFV.size());
         HashSet<IInformationSet> myInformationSets = new HashSet<>();
@@ -248,25 +243,25 @@ public class CFRResolver implements ISubgameResolver {
             for (IInformationSet myIs: myInformationSets) {
                 cumulativeStrat.addProbabilities(myIs, (action) -> strat.getProbability(myIs, action));
             }
-            onEvent((listener, info) -> listener.resolvingIterationEnd(info));
+            resolvingListeners.forEach(listener -> listener.resolvingIterationEnd(resInfo));
         }
         cumulativeStrat.normalize();
 
-        onEvent((listener, info) -> listener.resolvingEnd(info));
+        resolvingListeners.forEach(listener -> listener.resolvingEnd(resInfo));
         return new ActResult(cumulativeStrat, tracker.getActionToNtit(), tracker.getActionToPsMap(), tracker.getMyISToNRT(), iters);
     }
 
     @Override
     public InitResult init(ICompleteInformationState initialState) {
-        onEvent((listener, info) -> listener.resolvingStart(info));
+        resolvingListeners.forEach(listener -> listener.resolvingStart(resInfo));
         GameTreeTraversalTracker tracker = GameTreeTraversalTracker.createForInit(myId, initialState);
         findMyNextTurn(tracker);
         for (int i = 0; i < iters; ++i) {
             cfr(tracker, myId, 0, 1, 1);
-            onEvent((listener, info) -> listener.resolvingIterationEnd(info));
+            resolvingListeners.forEach(listener -> listener.resolvingIterationEnd(resInfo));
         }
-        onEvent((listener, info) -> listener.resolvingEnd(info));
-        onEvent((listener, info) -> listener.initEnd(info));
+        resolvingListeners.forEach(listener -> listener.resolvingEnd(resInfo));
+        resolvingListeners.forEach(listener -> listener.initEnd(resInfo));
         return new InitResult(tracker.getNtit(), tracker.getNrt(), tracker.getPsMap(), iters);
     }
 }
