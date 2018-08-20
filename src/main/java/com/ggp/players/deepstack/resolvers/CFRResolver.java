@@ -13,7 +13,7 @@ import com.ggp.utils.PlayerHelpers;
 import java.util.*;
 import java.util.function.BiFunction;
 
-public class CFRResolver implements ISubgameResolver {
+public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
     public static class Factory implements ISubgameResolver.Factory {
         private int iters;
         private ICFVEstimator cfvEstimator;
@@ -33,46 +33,24 @@ public class CFRResolver implements ISubgameResolver {
         }
     }
 
-    private int myId;
     private int iters;
-    private InformationSetRange range;
-    private HashMap<IInformationSet, Double> opponentCFV;
-    private ICompleteInformationStateFactory cisFactory;
-    private ArrayList<IResolvingListener> resolvingListeners;
     private ICFVEstimator cfvEstimator;
     private int depthLimit = 2;
     private Strategy strat = new Strategy();
     private Strategy nextStrat = new Strategy();
-    private Strategy cumulativeStrat = new Strategy();
-    private HashMap<IInformationSet, double[]> regrets = new HashMap<>();
-    private double[] regretsGadget;
-    private HashMap<IInformationSet, Double> opponentFollowProb;
-    private int opponentId;
-    private ResolvingInfo resInfo = new ResolvingInfo();
 
     public CFRResolver(int myId, int iters, InformationSetRange range, HashMap<IInformationSet, Double> opponentCFV,
                        ICompleteInformationStateFactory cisFactory, ArrayList<IResolvingListener> resolvingListeners,
                        ICFVEstimator cfvEstimator, int depthLimit)
     {
-        this.myId = myId;
+        super(myId, range, opponentCFV, resolvingListeners);
+        this.resInfo = new ResolvingInfo();
         this.iters = iters;
-        this.range = range;
-        this.opponentCFV = opponentCFV;
-        this.cisFactory = cisFactory;
-        this.resolvingListeners = resolvingListeners;
-        if (this.resolvingListeners == null) this.resolvingListeners = new ArrayList<>();
         this.cfvEstimator = cfvEstimator;
         this.depthLimit = depthLimit;
-        regretsGadget = new double[2 * opponentCFV.size()];
-        Arrays.fill(regretsGadget, 0d);
-        opponentFollowProb = new HashMap<>(opponentCFV.size());
-        for (IInformationSet os: opponentCFV.keySet()) {
-            opponentFollowProb.put(os, 0.5);
-        }
-        opponentId = PlayerHelpers.getOpponentId(myId);
     }
 
-    private class CFRResult {
+    private static class CFRResult {
         public double player1CFV;
         public double player2CFV;
 
@@ -89,7 +67,7 @@ public class CFRResolver implements ISubgameResolver {
         }
     }
 
-    public CFRResult cfr(GameTreeTraversalTracker tracker, int player, int depth, double p1, double p2) {
+    private CFRResult cfr(GameTreeTraversalTracker tracker, int player, int depth, double p1, double p2) {
         ICompleteInformationState s = tracker.getCurrentState();
         resolvingListeners.forEach(listener -> listener.stateVisited(s, resInfo));
 
@@ -148,64 +126,22 @@ public class CFRResolver implements ISubgameResolver {
             tracker.getNtit().addLeaf(s.getInfoSetForPlayer(opponentId), probWithoutOpponent * cfv[opponentId - 1]);
         }
         // TODO: is it ok to compute both strategies at once??
-        double totalRegret = 0;
         i = 0;
-        double[] actionRegrets = regrets.getOrDefault(is, null);
-        if (actionRegrets == null) {
-            actionRegrets = new double[legalActions.size()];
-            Arrays.fill(actionRegrets, 0d);
-            regrets.put(is, actionRegrets);
-        }
         double probWithoutActingPlayer = rndProb * PlayerHelpers.selectByPlayerId(s.getActingPlayerId(), p2, p1); // \pi_{-i}
         int pid = s.getActingPlayerId();
         for (IAction a: legalActions) {
-            actionRegrets[i] = Math.max(actionRegrets[i] + probWithoutActingPlayer*(actionCFV[2*i + pid - 1] - cfv[pid - 1]), 0);
-            totalRegret += actionRegrets[i];
+            regretMatching.addActionRegret(is, i, probWithoutActingPlayer*(actionCFV[2*i + pid - 1] - cfv[pid - 1]));
             i++;
         }
-        i = 0;
-        if (totalRegret > 0) {
-            for (IAction a: legalActions) {
-                nextStrat.setProbability(is, a, actionRegrets[i]/totalRegret);
-                i++;
-            }
-        } else {
-            nextStrat.setProbabilities(is, (action) -> 1d/legalActions.size());
-        }
+        regretMatching.getRegretMatchedStrategy(is, nextStrat);
 
         CFRResult ret = new CFRResult(cfv[0], cfv[1]);
 
         return ret;
     }
 
-    protected void findMyNextTurn(GameTreeTraversalTracker tracker) {
-        ICompleteInformationState s = tracker.getCurrentState();
-        resolvingListeners.forEach(listener -> listener.stateVisited(s, resInfo));
-        if (s.isTerminal()) return;
-        if (tracker.isMyNextTurnReached()) {
-            tracker.getNtit().addLeaf(s.getInfoSetForPlayer(opponentId), 0);
-            tracker.getPsMap().add(tracker.getMyPerceptSequence(), tracker.getOpponentPerceptSequence());
-            tracker.getNrt().add(tracker.getOpponentPerceptSequence(), s, tracker.getMyTopAction(), tracker.getRndProb());
-            return;
-        }
-        for (IAction a: s.getLegalActions()) {
-            findMyNextTurn(tracker.next(a));
-        }
-    }
-
-    private GameTreeTraversalTracker prepareDataStructures() {
-        GameTreeTraversalTracker tracker = GameTreeTraversalTracker.createForAct(myId);
-        for (Map.Entry<ICompleteInformationState, Double> stateProb: range.getProbabilities()) {
-            GameTreeTraversalTracker stateTracker = tracker.visitRandom(stateProb.getKey(), stateProb.getValue());
-            findMyNextTurn(stateTracker);
-        }
-        return tracker;
-    }
-
     @Override
-    public ActResult act() {
-        resolvingListeners.forEach(listener -> listener.resolvingStart(resInfo));
-        GameTreeTraversalTracker tracker = prepareDataStructures();
+    protected ActResult doAct(GameTreeTraversalTracker tracker) {
         HashMap<IInformationSet, Double> currentOpponentCFV = new HashMap<>(opponentCFV.size());
         HashSet<IInformationSet> myInformationSets = new HashSet<>();
         for (ICompleteInformationState s: range.getPossibleStates()) {
@@ -220,23 +156,12 @@ public class CFRResolver implements ISubgameResolver {
                 double rndProb = stateProb.getValue();
                 GameTreeTraversalTracker stateTracker = tracker.visitRandom(s, rndProb);
                 IInformationSet os = s.getInfoSetForPlayer(opponentId);
-                CFRResult res = PlayerHelpers.callWithPlayerParams(myId, opponentFollowProb.get(os), 1d, (r1, r2) -> cfr(stateTracker, myId, 0, r1, r2));
+                CFRResult res = PlayerHelpers.callWithPlayerParams(myId, subgameGadget.getFollowProb(os), 1d, (r1, r2) -> cfr(stateTracker, myId, 0, r1, r2));
                 double osCFV = PlayerHelpers.selectByPlayerId(opponentId, res.player1CFV, res.player2CFV) * rndProb;
                 currentOpponentCFV.merge(os, osCFV, (oldV, newV) -> oldV + newV);
             }
             for (IInformationSet os: opponentCFV.keySet()) {
-                double osCFV = currentOpponentCFV.get(os);
-                int osIdx = 0;
-
-                double followProb = Math.max(regretsGadget[2*osIdx], 0);
-                followProb = followProb/(followProb + Math.max(regretsGadget[2*osIdx + 1], 0));
-                if (Double.isNaN(followProb)) followProb = 0.5; // during first iteration regretsGadget is 0
-                opponentFollowProb.put(os, followProb);
-                double gadgetValue = followProb * osCFV + (1 - followProb) * opponentCFV.getOrDefault(os, 0d);
-                regretsGadget[2*osIdx + 1] += opponentCFV.getOrDefault(os, 0d)  - gadgetValue;
-                regretsGadget[2*osIdx] += osCFV - gadgetValue;
-
-                osIdx++;
+                subgameGadget.addFollowCFV(os, currentOpponentCFV.get(os));
             }
             strat = nextStrat;
             nextStrat = new Strategy();
@@ -247,21 +172,15 @@ public class CFRResolver implements ISubgameResolver {
         }
         cumulativeStrat.normalize();
 
-        resolvingListeners.forEach(listener -> listener.resolvingEnd(resInfo));
         return new ActResult(cumulativeStrat, tracker.getActionToNtit(), tracker.getActionToPsMap(), tracker.getMyISToNRT(), iters);
     }
 
     @Override
-    public InitResult init(ICompleteInformationState initialState) {
-        resolvingListeners.forEach(listener -> listener.resolvingStart(resInfo));
-        GameTreeTraversalTracker tracker = GameTreeTraversalTracker.createForInit(myId, initialState);
-        findMyNextTurn(tracker);
+    protected InitResult doInit(GameTreeTraversalTracker tracker) {
         for (int i = 0; i < iters; ++i) {
             cfr(tracker, myId, 0, 1, 1);
             resolvingListeners.forEach(listener -> listener.resolvingIterationEnd(resInfo));
         }
-        resolvingListeners.forEach(listener -> listener.resolvingEnd(resInfo));
-        resolvingListeners.forEach(listener -> listener.initEnd(resInfo));
         return new InitResult(tracker.getNtit(), tracker.getNrt(), tracker.getPsMap(), iters);
     }
 }
