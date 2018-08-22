@@ -96,7 +96,7 @@ public class InformationSet implements IInformationSet {
     public boolean isLegal(IAction a) {
         if (isTerminal() || a == null) return false; // terminal
         if (a.getClass() == FoldAction.class || a.getClass() == CallAction.class) return true;
-        if (a.getClass() == RaiseAction.class) return !wasRaised && remainingMoney > getRaiseAmount();
+        if (a.getClass() == RaiseAction.class) return !wasRaised && remainingMoney >= getRaiseAmount();
         return false;
     }
 
