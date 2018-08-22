@@ -13,6 +13,14 @@ public interface IPlayer {
     IAction act();
 
     /**
+     * Force player to take given action.
+     *
+     * Player should perform the same strategy computation as with act and just override action sampling at the end.
+     * @param a
+     */
+    void forceAction(IAction a);
+
+    /**
      * Return assigned player ID.
      * @return
      */

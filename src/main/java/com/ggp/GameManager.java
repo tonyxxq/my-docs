@@ -1,8 +1,10 @@
 package com.ggp;
 
+import com.ggp.utils.PlayerHelpers;
 import com.ggp.utils.RandomItemSelector;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class GameManager {
     private IPlayer player1;
@@ -18,37 +20,48 @@ public class GameManager {
     }
 
     public void run() {
+        run(null);
+    }
+
+    public void run(Iterator<IAction> forcedActions) {
         gameListeners.forEach((listener) -> listener.gameStart());
         player1.init();
         player2.init();
 
-        while(!playOneTurn()) {}
+        while(!playOneTurn(forcedActions)) {}
         gameListeners.forEach((listener) -> listener.gameEnd(getPayoff(1), getPayoff(2)));
     }
 
-    private boolean playOneTurn() {
+    private boolean playOneTurn(Iterator<IAction> currentForcedAction) {
         if (player1 == null || player2 == null) return true;
         gameListeners.forEach((listener) -> listener.stateReached(state));
         if (state.isTerminal()) return true;
         IAction a;
         int turn = state.getActingPlayerId();
-        if (turn == 1) {
-            a = player1.act();
-        } else if (turn == 2) {
-            a = player2.act();
+        if (currentForcedAction == null) {
+            if (state.isRandomNode()) {
+                a = randomActionSelector.select(state.getLegalActions());
+            } else {
+                a = PlayerHelpers.callWithSelectedParam(turn, player1, player2, p -> p.act());
+                if (!state.isLegal(a)) {
+                    throw new IllegalStateException(String.format("Player %d chose illegal action %s", turn, a));
+                }
+            }
         } else {
-            // random player
-            a = randomActionSelector.select(state.getLegalActions());
+            a = currentForcedAction.next();
+            if (!state.isLegal(a)) {
+                throw new IllegalStateException(String.format("Illegal forced action %s", a));
+            }
+            if (!state.isRandomNode()) {
+                PlayerHelpers.callWithSelectedParamVoid(turn, player1, player2, p -> p.forceAction(a));
+            }
         }
+
         gameListeners.forEach((listener) -> listener.actionSelected(state, a));
         Iterable<IPercept> percepts = state.getPercepts(a);
         state = state.next(a);
         for (IPercept p: percepts) {
-            if (p.getTargetPlayer() == 1) {
-                player1.receivePercepts(p);
-            } else if (p.getTargetPlayer() == 2) {
-                player2.receivePercepts(p);
-            }
+            PlayerHelpers.callWithSelectedParamVoid(p.getTargetPlayer(), player1, player2, player -> player.receivePercepts(p));
         }
         return false;
     }

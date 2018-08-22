@@ -85,15 +85,21 @@ public class DeepstackPlayer implements IPlayer {
         return id;
     }
 
-    @Override
-    public IAction act() {
+    private IAction act(IAction forcedAction) {
         opponentCFV = new HashMap<>(ntit.getOpponentValues().size());
         ntit.getOpponentValues().forEach((is, cfv) -> opponentCFV.put(is, cfv.getValue() / opponentCFVNorm));
         range.advance(psMap.getPossibleSequences(myPSBuilder.close()), myISToNRT, lastCumulativeStrategy);
         ISubgameResolver r = createResolver();
         ISubgameResolver.ActResult res = r.act();
         lastCumulativeStrategy = res.cumulativeStrategy;
-        IAction selectedAction = res.cumulativeStrategy.sampleAction(hiddenInfo);
+
+        IAction selectedAction;
+        if (forcedAction == null) {
+            selectedAction = res.cumulativeStrategy.sampleAction(hiddenInfo);
+        } else {
+            selectedAction = forcedAction;
+        }
+
         myLastAction = selectedAction;
         ntit = res.actionToNTIT.get(selectedAction);
         psMap = res.actionToPsMap.get(selectedAction);
@@ -101,6 +107,16 @@ public class DeepstackPlayer implements IPlayer {
         hiddenInfo = hiddenInfo.next(selectedAction);
         opponentCFVNorm = res.opponentCFVNorm;
         return selectedAction;
+    }
+
+    @Override
+    public void forceAction(IAction forcedAction) {
+        act(forcedAction);
+    }
+
+    @Override
+    public IAction act() {
+        return act(null);
     }
 
     @Override

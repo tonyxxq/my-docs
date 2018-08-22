@@ -32,6 +32,11 @@ public class RandomPlayer implements IPlayer {
     }
 
     @Override
+    public void forceAction(IAction a) {
+        infoSet = infoSet.next(a);
+    }
+
+    @Override
     public int getRole() {
         return role;
     }
