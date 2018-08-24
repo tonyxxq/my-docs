@@ -21,18 +21,18 @@ public class RandomPlayer implements IPlayer {
     }
 
     @Override
-    public void init() {
+    public void init(long timeoutMillis) {
     }
 
     @Override
-    public IAction act() {
+    public IAction act(long timeoutMillis) {
         IAction a = randomActionSelector.select(infoSet.getLegalActions());
         infoSet = infoSet.next(a);
         return a;
     }
 
     @Override
-    public void forceAction(IAction a) {
+    public void forceAction(IAction a, long timeoutMillis) {
         infoSet = infoSet.next(a);
     }
 

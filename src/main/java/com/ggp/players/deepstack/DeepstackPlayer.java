@@ -71,9 +71,11 @@ public class DeepstackPlayer implements IPlayer {
     }
 
     @Override
-    public void init() {
+    public void init(long timeoutMillis) {
+        IterationTimer timer = new IterationTimer(timeoutMillis);
+        timer.start();
         ISubgameResolver r = createResolver();
-        ISubgameResolver.InitResult res = r.init(gameDesc.getInitialState());
+        ISubgameResolver.InitResult res = r.init(gameDesc.getInitialState(), timer);
         ntit = res.ntit;
         myISToNRT.put(gameDesc.getInitialInformationSet(id), res.nrt);
         psMap = res.psMap;
@@ -85,12 +87,14 @@ public class DeepstackPlayer implements IPlayer {
         return id;
     }
 
-    private IAction act(IAction forcedAction) {
+    private IAction act(IAction forcedAction, long timeoutMillis) {
+        IterationTimer timer = new IterationTimer(timeoutMillis);
+        timer.start();
         opponentCFV = new HashMap<>(ntit.getOpponentValues().size());
         ntit.getOpponentValues().forEach((is, cfv) -> opponentCFV.put(is, cfv.getValue() / opponentCFVNorm));
         range.advance(psMap.getPossibleSequences(myPSBuilder.close()), myISToNRT, lastCumulativeStrategy);
         ISubgameResolver r = createResolver();
-        ISubgameResolver.ActResult res = r.act();
+        ISubgameResolver.ActResult res = r.act(timer);
         lastCumulativeStrategy = res.cumulativeStrategy;
 
         IAction selectedAction;
@@ -110,13 +114,13 @@ public class DeepstackPlayer implements IPlayer {
     }
 
     @Override
-    public void forceAction(IAction forcedAction) {
-        act(forcedAction);
+    public void forceAction(IAction forcedAction, long timeoutMillis) {
+        act(forcedAction, timeoutMillis);
     }
 
     @Override
-    public IAction act() {
-        return act(null);
+    public IAction act(long timeoutMillis) {
+        return act(null, timeoutMillis);
     }
 
     @Override

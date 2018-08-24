@@ -73,7 +73,7 @@ public class RunCommand implements Runnable {
         manager.registerGameListener(plCmd1.getGameListener());
         manager.registerGameListener(plCmd2.getGameListener());
 
-        manager.run();
+        manager.run(1000, 1000);
         System.out.println("Result 1:" + manager.getPayoff(1) + ", 2:" + manager.getPayoff(2));
 
     }

@@ -19,20 +19,20 @@ public class GameManager {
         this.state = game.getInitialState();
     }
 
-    public void run() {
-        run(null);
+    public void run(long initTimeoutMillis, long actTimeoutMillis) {
+        run(initTimeoutMillis, actTimeoutMillis, null);
     }
 
-    public void run(Iterator<IAction> forcedActions) {
+    public void run(long initTimeoutMillis, long actTimeoutMillis, Iterator<IAction> forcedActions) {
         gameListeners.forEach((listener) -> listener.gameStart());
-        player1.init();
-        player2.init();
+        player1.init(initTimeoutMillis);
+        player2.init(initTimeoutMillis);
 
-        while(!playOneTurn(forcedActions)) {}
+        while(!playOneTurn(actTimeoutMillis, forcedActions)) {}
         gameListeners.forEach((listener) -> listener.gameEnd(getPayoff(1), getPayoff(2)));
     }
 
-    private boolean playOneTurn(Iterator<IAction> currentForcedAction) {
+    private boolean playOneTurn(long actTimeoutMillis, Iterator<IAction> currentForcedAction) {
         if (player1 == null || player2 == null) return true;
         gameListeners.forEach((listener) -> listener.stateReached(state));
         if (state.isTerminal()) return true;
@@ -42,7 +42,7 @@ public class GameManager {
             if (state.isRandomNode()) {
                 a = randomActionSelector.select(state.getLegalActions());
             } else {
-                a = PlayerHelpers.callWithSelectedParam(turn, player1, player2, p -> p.act());
+                a = PlayerHelpers.callWithSelectedParam(turn, player1, player2, p -> p.act(actTimeoutMillis));
                 if (!state.isLegal(a)) {
                     throw new IllegalStateException(String.format("Player %d chose illegal action %s", turn, a));
                 }
@@ -53,7 +53,7 @@ public class GameManager {
                 throw new IllegalStateException(String.format("Illegal forced action %s", a));
             }
             if (!state.isRandomNode()) {
-                PlayerHelpers.callWithSelectedParamVoid(turn, player1, player2, p -> p.forceAction(a));
+                PlayerHelpers.callWithSelectedParamVoid(turn, player1, player2, p -> p.forceAction(a, actTimeoutMillis));
             }
         }
 

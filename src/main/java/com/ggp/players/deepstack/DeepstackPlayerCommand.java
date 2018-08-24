@@ -5,6 +5,7 @@ import com.ggp.IPlayerFactory;
 import com.ggp.cli.IPlayerFactoryCommand;
 import com.ggp.players.deepstack.debug.ResolvingListener;
 import com.ggp.players.deepstack.resolvers.CFRResolver;
+import com.ggp.players.deepstack.resolvers.MCCFRResolver;
 import picocli.CommandLine;
 
 @CommandLine.Command(
@@ -12,15 +13,12 @@ import picocli.CommandLine;
         description = "Deepstack player"
 )
 public class DeepstackPlayerCommand implements IPlayerFactoryCommand {
-    @CommandLine.Option(names = {"-i", "--iters"}, defaultValue = "50",
-            description = "no. of resolving iterations to run at each step")
-    private int iterations;
-
     private ResolvingListener listener = new ResolvingListener();
 
     @Override
     public IPlayerFactory getPlayerFactory() {
-        return new DeepstackPlayer.Factory(new CFRResolver.Factory(iterations, null, 2), listener);
+        return new DeepstackPlayer.Factory(new CFRResolver.Factory(null, 2), listener);
+        //return new DeepstackPlayer.Factory(new MCCFRResolver.Factory(), listener);
     }
 
     @Override

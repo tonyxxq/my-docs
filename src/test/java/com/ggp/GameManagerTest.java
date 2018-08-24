@@ -49,7 +49,7 @@ class GameManagerTest {
                 actions.add(a);
             }
         });
-        gameManager.run(forcedActions.iterator());
+        gameManager.run(1, 1, forcedActions.iterator());
         assertEquals(forcedActions, actions);
     }
 }

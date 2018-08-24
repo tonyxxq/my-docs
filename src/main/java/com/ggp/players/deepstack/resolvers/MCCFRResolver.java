@@ -8,34 +8,27 @@ import com.ggp.players.deepstack.IResolvingListener;
 import com.ggp.players.deepstack.ISubgameResolver;
 import com.ggp.players.deepstack.utils.GameTreeTraversalTracker;
 import com.ggp.players.deepstack.utils.InformationSetRange;
+import com.ggp.players.deepstack.utils.IterationTimer;
 import com.ggp.players.deepstack.utils.Strategy;
 
 import java.util.*;
 
 public class MCCFRResolver extends BaseCFRSolver implements ISubgameResolver {
     public static class Factory implements ISubgameResolver.Factory {
-        private int iters;
-
-        public Factory(int iters) {
-            this.iters = iters;
-        }
-
         @Override
         public ISubgameResolver create(int myId, InformationSetRange myRange, HashMap<IInformationSet, Double> opponentCFV, ICompleteInformationStateFactory cisFactory, ArrayList<IResolvingListener> resolvingListeners) {
-            return new MCCFRResolver(myId, myRange, opponentCFV, resolvingListeners, iters);
+            return new MCCFRResolver(myId, myRange, opponentCFV, resolvingListeners);
         }
     }
 
-    private int iters;
     private Strategy strat = new Strategy();
     private double targetingProb = 0d;
     private double explorationProb = 0.2d;
     private Random rng = new Random();
 
     public MCCFRResolver(int myId, InformationSetRange range, HashMap<IInformationSet, Double> opponentCFV,
-                         List<IResolvingListener> resolvingListeners, int iters) {
+                         List<IResolvingListener> resolvingListeners) {
         super(myId, range, opponentCFV, resolvingListeners);
-        this.iters = iters;
     }
 
     private static class CFRResult {
@@ -201,11 +194,12 @@ public class MCCFRResolver extends BaseCFRSolver implements ISubgameResolver {
     }
 
     @Override
-    protected ActResult doAct(GameTreeTraversalTracker tracker) {
+    protected ActResult doAct(GameTreeTraversalTracker tracker, IterationTimer timeout) {
         double remaining = 0;
         int nextIter = 1;
         int realIters = 0;
-        while(remaining < iters) {
+        while (timeout.canDoAnotherIteration()) {
+            timeout.startIteration();
             {
                 SubgameSample subgameSample = sampleSubgame();
                 ICompleteInformationState s = subgameSample.state;
@@ -230,6 +224,7 @@ public class MCCFRResolver extends BaseCFRSolver implements ISubgameResolver {
                 nextIter++;
             }
             realIters++;
+            timeout.endIteration();
         }
         resolvingListeners.forEach(listener -> listener.resolvingIterationEnd(resInfo));
         cumulativeStrat.normalize();
@@ -238,11 +233,12 @@ public class MCCFRResolver extends BaseCFRSolver implements ISubgameResolver {
     }
 
     @Override
-    protected InitResult doInit(GameTreeTraversalTracker tracker) {
+    protected InitResult doInit(GameTreeTraversalTracker tracker, IterationTimer timeout) {
         double remaining = 0;
         int nextIter = 1;
         int realIters = 0;
-        while(remaining < iters) {
+        while (timeout.canDoAnotherIteration()) {
+            timeout.startIteration();
             CFRResult res = cfr(tracker, 1d, 1d, 1d, 1d, myId);
             remaining += res.sampleProb;
             res = cfr(tracker, 1d, 1d, 1d, 1d, opponentId);
@@ -252,6 +248,7 @@ public class MCCFRResolver extends BaseCFRSolver implements ISubgameResolver {
                 nextIter++;
             }
             realIters++;
+            timeout.endIteration();
         }
         return new InitResult(tracker.getNtit(), tracker.getNrt(), tracker.getPsMap(), realIters);
     }

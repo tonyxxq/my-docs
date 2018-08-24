@@ -8,10 +8,7 @@ import com.ggp.players.deepstack.IResolvingInfo;
 import com.ggp.players.deepstack.IResolvingListener;
 import com.ggp.players.deepstack.ISubgameResolver;
 import com.ggp.players.deepstack.rerget_matching.RegretMatchingPlus;
-import com.ggp.players.deepstack.utils.GameTreeTraversalTracker;
-import com.ggp.players.deepstack.utils.InformationSetRange;
-import com.ggp.players.deepstack.utils.Strategy;
-import com.ggp.players.deepstack.utils.SubgameGadget;
+import com.ggp.players.deepstack.utils.*;
 import com.ggp.utils.PlayerHelpers;
 
 import java.util.ArrayList;
@@ -64,25 +61,25 @@ public abstract class BaseCFRSolver implements ISubgameResolver {
         return tracker;
     }
 
-    protected abstract ActResult doAct(GameTreeTraversalTracker tracker);
+    protected abstract ActResult doAct(GameTreeTraversalTracker tracker, IterationTimer timeout);
 
     @Override
-    public ActResult act() {
+    public ActResult act(IterationTimer timeout) {
         resolvingListeners.forEach(listener -> listener.resolvingStart(resInfo));
         GameTreeTraversalTracker tracker = prepareDataStructures();
-        ActResult res = doAct(tracker);
+        ActResult res = doAct(tracker, timeout);
         resolvingListeners.forEach(listener -> listener.resolvingEnd(resInfo));
         return res;
     }
 
-    protected abstract InitResult doInit(GameTreeTraversalTracker tracker);
+    protected abstract InitResult doInit(GameTreeTraversalTracker tracker, IterationTimer timeout);
 
     @Override
-    public InitResult init(ICompleteInformationState initialState) {
+    public InitResult init(ICompleteInformationState initialState, IterationTimer timeout) {
         resolvingListeners.forEach(listener -> listener.resolvingStart(resInfo));
         GameTreeTraversalTracker tracker = GameTreeTraversalTracker.createForInit(myId, initialState);
         findMyNextTurn(tracker);
-        InitResult res = doInit(tracker);
+        InitResult res = doInit(tracker, timeout);
         resolvingListeners.forEach(listener -> listener.resolvingEnd(resInfo));
         resolvingListeners.forEach(listener -> listener.initEnd(resInfo));
         return res;

@@ -7,6 +7,7 @@ import com.ggp.IInformationSet;
 import com.ggp.players.deepstack.*;
 import com.ggp.players.deepstack.utils.GameTreeTraversalTracker;
 import com.ggp.players.deepstack.utils.InformationSetRange;
+import com.ggp.players.deepstack.utils.IterationTimer;
 import com.ggp.players.deepstack.utils.Strategy;
 import com.ggp.utils.PlayerHelpers;
 
@@ -15,12 +16,10 @@ import java.util.function.BiFunction;
 
 public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
     public static class Factory implements ISubgameResolver.Factory {
-        private int iters;
         private ICFVEstimator cfvEstimator;
         private int depthLimit;
 
-        public Factory(int iters, ICFVEstimator cfvEstimator, int depthLimit) {
-            this.iters = iters;
+        public Factory(ICFVEstimator cfvEstimator, int depthLimit) {
             this.cfvEstimator = cfvEstimator;
             this.depthLimit = depthLimit;
         }
@@ -29,23 +28,21 @@ public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
         public ISubgameResolver create(int myId, InformationSetRange myRange, HashMap<IInformationSet, Double> opponentCFV,
                                        ICompleteInformationStateFactory cisFactory, ArrayList<IResolvingListener> resolvingListeners)
         {
-            return new CFRResolver(myId, iters, myRange, opponentCFV, cisFactory, resolvingListeners, cfvEstimator, depthLimit);
+            return new CFRResolver(myId, myRange, opponentCFV, cisFactory, resolvingListeners, cfvEstimator, depthLimit);
         }
     }
 
-    private int iters;
     private ICFVEstimator cfvEstimator;
     private int depthLimit = 2;
     private Strategy strat = new Strategy();
     private Strategy nextStrat = new Strategy();
 
-    public CFRResolver(int myId, int iters, InformationSetRange range, HashMap<IInformationSet, Double> opponentCFV,
+    public CFRResolver(int myId, InformationSetRange range, HashMap<IInformationSet, Double> opponentCFV,
                        ICompleteInformationStateFactory cisFactory, ArrayList<IResolvingListener> resolvingListeners,
                        ICFVEstimator cfvEstimator, int depthLimit)
     {
         super(myId, range, opponentCFV, resolvingListeners);
         this.resInfo = new ResolvingInfo();
-        this.iters = iters;
         this.cfvEstimator = cfvEstimator;
         this.depthLimit = depthLimit;
     }
@@ -141,13 +138,15 @@ public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
     }
 
     @Override
-    protected ActResult doAct(GameTreeTraversalTracker tracker) {
+    protected ActResult doAct(GameTreeTraversalTracker tracker, IterationTimer timeout) {
         HashMap<IInformationSet, Double> currentOpponentCFV = new HashMap<>(opponentCFV.size());
         HashSet<IInformationSet> myInformationSets = new HashSet<>();
         for (ICompleteInformationState s: range.getPossibleStates()) {
             myInformationSets.add(s.getInfoSetForActingPlayer());
         }
-        for (int i = 0; i < iters; ++i) {
+        int iters = 0;
+        while (timeout.canDoAnotherIteration()) {
+            timeout.startIteration();
             for (IInformationSet os: opponentCFV.keySet()) {
                 currentOpponentCFV.put(os, 0d);
             }
@@ -169,6 +168,8 @@ public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
                 cumulativeStrat.addProbabilities(myIs, (action) -> strat.getProbability(myIs, action));
             }
             resolvingListeners.forEach(listener -> listener.resolvingIterationEnd(resInfo));
+            timeout.endIteration();
+            iters++;
         }
         cumulativeStrat.normalize();
 
@@ -176,10 +177,14 @@ public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
     }
 
     @Override
-    protected InitResult doInit(GameTreeTraversalTracker tracker) {
-        for (int i = 0; i < iters; ++i) {
+    protected InitResult doInit(GameTreeTraversalTracker tracker, IterationTimer timeout) {
+        int iters = 0;
+        while (timeout.canDoAnotherIteration()) {
+            timeout.startIteration();
             cfr(tracker, myId, 0, 1, 1);
             resolvingListeners.forEach(listener -> listener.resolvingIterationEnd(resInfo));
+            timeout.endIteration();
+            iters++;
         }
         return new InitResult(tracker.getNtit(), tracker.getNrt(), tracker.getPsMap(), iters);
     }

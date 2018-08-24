@@ -45,6 +45,6 @@ public interface ISubgameResolver {
         }
     }
 
-    ActResult act();
-    InitResult init(ICompleteInformationState initialState);
+    ActResult act(IterationTimer timeout);
+    InitResult init(ICompleteInformationState initialState, IterationTimer timeout);
 }
