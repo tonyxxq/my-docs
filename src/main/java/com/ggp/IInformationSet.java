@@ -39,4 +39,10 @@ public interface IInformationSet {
      * @return
      */
     boolean isValid(IPercept p);
+
+    /**
+     * Get ID of player owning this IS
+     * @return
+     */
+    int getOwnerId();
 }

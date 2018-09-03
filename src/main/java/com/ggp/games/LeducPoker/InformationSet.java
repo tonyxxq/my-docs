@@ -193,4 +193,9 @@ public class InformationSet implements IInformationSet {
         }
         return false;
     }
+
+    @Override
+    public int getOwnerId() {
+        return owner;
+    }
 }

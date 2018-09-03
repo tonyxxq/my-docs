@@ -332,4 +332,9 @@ public class InformationSet implements IInformationSet{
         if (field[5*x + y] != FIELD_MINE) return false;
         return true;
     }
+
+    @Override
+    public int getOwnerId() {
+        return owningPlayerId;
+    }
 }

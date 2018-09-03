@@ -27,7 +27,7 @@ public class GameDescription implements IGameDescription {
                 if (player1 == null || player2 == null || player1.getClass() != InformationSet.class
                         || player2.getClass() != InformationSet.class) return false;
                 InformationSet is1 = (InformationSet) player1, is2 = (InformationSet) player2;
-                if (is1.getOwner() != 1 || is2.getOwner() !=2 || is1.getSize() != is2.getSize()) return false;
+                if (is1.getOwnerId() != 1 || is2.getOwnerId() !=2 || is1.getSize() != is2.getSize()) return false;
                 if (actingPlayer == 1 && is1.getChosenAction() != null) return false;
                 if (actingPlayer == 2 && is2.getChosenAction() != null) return false;
                  return true;

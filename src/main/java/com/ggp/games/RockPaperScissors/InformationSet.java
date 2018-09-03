@@ -69,7 +69,8 @@ public class InformationSet implements IInformationSet {
         return Objects.hash(owner, chosenAction, size);
     }
 
-    public int getOwner() {
+    @Override
+    public int getOwnerId() {
         return owner;
     }
 
