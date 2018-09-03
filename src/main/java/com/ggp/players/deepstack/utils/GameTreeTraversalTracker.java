@@ -4,6 +4,7 @@ import com.ggp.IAction;
 import com.ggp.ICompleteInformationState;
 import com.ggp.IInformationSet;
 import com.ggp.IPercept;
+import com.ggp.utils.OwnActionPercept;
 import com.ggp.utils.PlayerHelpers;
 
 import java.util.Collections;
