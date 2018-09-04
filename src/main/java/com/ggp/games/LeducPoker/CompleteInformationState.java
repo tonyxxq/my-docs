@@ -12,6 +12,7 @@ import com.ggp.games.LeducPoker.percepts.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class CompleteInformationState implements ICompleteInformationState {
     private final InformationSet player1IS;
@@ -190,5 +191,20 @@ public class CompleteInformationState implements ICompleteInformationState {
         if (actingPlayer == 1) return player1IS.isLegal(a);
         if (actingPlayer == 2) return player2IS.isLegal(a);
         return legalDealActions.contains(a);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CompleteInformationState that = (CompleteInformationState) o;
+        return actingPlayer == that.actingPlayer &&
+                Objects.equals(player1IS, that.player1IS) &&
+                Objects.equals(player2IS, that.player2IS);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(player1IS, player2IS, actingPlayer);
     }
 }
