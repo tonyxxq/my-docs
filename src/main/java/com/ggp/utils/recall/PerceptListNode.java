@@ -1,4 +1,4 @@
-package com.ggp.utils.perfect_recall;
+package com.ggp.utils.recall;
 
 import com.ggp.IPercept;
 

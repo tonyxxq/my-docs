@@ -1,4 +1,4 @@
-package com.ggp.utils.perfect_recall;
+package com.ggp.utils.recall;
 
 import com.ggp.*;
 
@@ -12,7 +12,12 @@ public class PerfectRecallGameDescriptionWrapper implements IGameDescription {
     public PerfectRecallGameDescriptionWrapper(IGameDescription gameDesc) {
         this.gameDesc = gameDesc;
         ICompleteInformationState s = gameDesc.getInitialState();
-        initialState = new PerfectRecallCIS(s, new PerfectRecallIS(s.getInfoSetForPlayer(1), null), new PerfectRecallIS(s.getInfoSetForPlayer(2), null));
+        initialState = (PerfectRecallCIS) wrapInitialState(s);
+    }
+
+    public static ICompleteInformationState wrapInitialState(ICompleteInformationState initialState) {
+        return new PerfectRecallCIS(initialState, new PerfectRecallIS(initialState.getInfoSetForPlayer(1), null),
+                new PerfectRecallIS(initialState.getInfoSetForPlayer(2), null));
     }
 
     @Override

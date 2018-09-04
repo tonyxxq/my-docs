@@ -1,37 +1,30 @@
-package com.ggp.utils.perfect_recall;
+package com.ggp.utils.recall;
 
-import com.ggp.IAction;
 import com.ggp.ICompleteInformationState;
 import com.ggp.games.LeducPoker.Cards;
 import com.ggp.games.LeducPoker.GameDescription;
 import com.ggp.games.LeducPoker.actions.CallAction;
 import com.ggp.games.LeducPoker.actions.DealCardAction;
 import com.ggp.games.LeducPoker.actions.RaiseAction;
+import com.ggp.utils.GameUtils;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class PerfectRecallGameDescriptionWrapperTest {
 
-    ICompleteInformationState applyActionSequnce(ICompleteInformationState s, IAction ... actions) {
-        for (IAction a: actions) {
-            s = s.next(a);
-        }
-        return s;
-    }
-
     @Test
     void testLeducPoker() {
         ICompleteInformationState initialState = (new PerfectRecallGameDescriptionWrapper(new GameDescription(7,7))).getInitialState();
         ICompleteInformationState s1, s2;
-        s1 = applyActionSequnce(initialState,
+        s1 = GameUtils.applyActionSequnce(initialState,
                 new DealCardAction(Cards.J, 1),
                 new DealCardAction(Cards.Q, 2),
                 CallAction.instance,
                 RaiseAction.instance,
                 CallAction.instance,
                 new DealCardAction(Cards.K));
-        s2 = applyActionSequnce(initialState,
+        s2 = GameUtils.applyActionSequnce(initialState,
                 new DealCardAction(Cards.J, 1),
                 new DealCardAction(Cards.Q, 2),
                 RaiseAction.instance,
