@@ -1,24 +1,30 @@
 package com.ggp.utils;
 
 public class StopWatch {
-    private long duration = 0;
-    private long start;
+    private long durationNano = 0;
+    private long startNano;
+
+    private static final long msToNano = 1000000L;
 
     public void start() {
-        start = System.nanoTime();
+        startNano = System.nanoTime();
     }
 
     public void stop() {
         long end = System.nanoTime();
-        duration += end - start;
+        durationNano += end - startNano;
     }
 
     public void reset() {
-        duration = 0;
-        start = 0;
+        durationNano = 0;
+        startNano = 0;
     }
 
     public long getDurationMs() {
-        return duration/1000000L;
+        return durationNano/msToNano;
+    }
+
+    public long getLiveDurationMs() {
+        return (durationNano + System.nanoTime() - startNano)/msToNano;
     }
 }

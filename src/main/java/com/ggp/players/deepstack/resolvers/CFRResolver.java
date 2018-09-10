@@ -42,7 +42,6 @@ public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
                        ICFVEstimator cfvEstimator, int depthLimit)
     {
         super(myId, range, opponentCFV, resolvingListeners);
-        this.resInfo = new ResolvingInfo();
         this.cfvEstimator = cfvEstimator;
         this.depthLimit = depthLimit;
     }
@@ -54,13 +53,6 @@ public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
         public CFRResult(double player1CFV, double player2CFV) {
             this.player1CFV = player1CFV;
             this.player2CFV = player2CFV;
-        }
-    }
-
-    private class ResolvingInfo implements IResolvingInfo {
-        @Override
-        public Strategy getUnnormalizedCumulativeStrategy() {
-            return cumulativeStrat;
         }
     }
 

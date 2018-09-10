@@ -8,8 +8,10 @@ public class IterationTimer {
     private long iters = 0;
     private long totalIterTime = 0;
 
+    private static final long msToNano = 1000000L;
+
     public IterationTimer(long timeoutMillis) {
-        this.timeoutNano = timeoutMillis * 1000000L;
+        this.timeoutNano = timeoutMillis * msToNano;
     }
 
     public void start() {
@@ -36,5 +38,9 @@ public class IterationTimer {
     public boolean canDoAnotherIteration() {
         long remainingNano = timeoutNano - (System.nanoTime() - startNano);
         return (remainingNano > getEstimatedIterationLengthNano());
+    }
+
+    public long getTotalMs() {
+        return (System.nanoTime() - startNano)/msToNano;
     }
 }

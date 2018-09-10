@@ -21,7 +21,7 @@ public abstract class BaseCFRSolver implements ISubgameResolver {
     protected InformationSetRange range;
     protected HashMap<IInformationSet, Double> opponentCFV;
     protected List<IResolvingListener> resolvingListeners;
-    protected IResolvingInfo resInfo;
+    protected IResolvingInfo resInfo = new ResolvingInfo();
     protected Strategy cumulativeStrat = new Strategy();
     protected IRegretMatching regretMatching = new RegretMatchingPlus();
     protected SubgameGadget subgameGadget;
@@ -36,6 +36,13 @@ public abstract class BaseCFRSolver implements ISubgameResolver {
         if (this.resolvingListeners == null) this.resolvingListeners = new ArrayList<>();
         this.subgameGadget = new SubgameGadget(opponentCFV);
         this.opponentId = PlayerHelpers.getOpponentId(myId);
+    }
+
+    private class ResolvingInfo implements IResolvingInfo {
+        @Override
+        public Strategy getUnnormalizedCumulativeStrategy() {
+            return cumulativeStrat;
+        }
     }
 
     protected void findMyNextTurn(GameTreeTraversalTracker tracker) {
