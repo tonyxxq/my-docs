@@ -37,11 +37,11 @@ class PerfectRecallIS extends InformationSetWrapper {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PerfectRecallIS that = (PerfectRecallIS) o;
-        return Objects.equals(percepts, that.percepts);
+        return infoSet.getOwnerId() == that.infoSet.getOwnerId() && Objects.equals(percepts, that.percepts);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(percepts);
+        return Objects.hash(percepts, infoSet.getOwnerId());
     }
 }

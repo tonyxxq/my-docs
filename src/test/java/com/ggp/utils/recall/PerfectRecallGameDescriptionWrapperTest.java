@@ -46,4 +46,10 @@ class PerfectRecallGameDescriptionWrapperTest {
         assertEquals(s1.getInfoSetForPlayer(1), s1.getInfoSetForPlayer(1));
         assertEquals(s1.getInfoSetForPlayer(2), s1.getInfoSetForPlayer(2));
     }
+
+    @Test
+    void testRPS() {
+        ICompleteInformationState initialState = (new PerfectRecallGameDescriptionWrapper(new com.ggp.games.RockPaperScissors.GameDescription(3))).getInitialState();
+        assertNotEquals(initialState.getInfoSetForPlayer(1), initialState.getInfoSetForPlayer(2));
+    }
 }
