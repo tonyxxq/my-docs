@@ -21,9 +21,6 @@ public class DeepstackPlayer implements IPlayer {
         public IPlayer create(IGameDescription game, int role) {
             DeepstackPlayer ret = new DeepstackPlayer(role, game, resolverFactory);
             if (listener != null) ret.registerResolvingListener(listener);
-            if (game.getClass() == com.ggp.games.RockPaperScissors.GameDescription.class) {
-                ret.registerResolvingListener(new RPSListener(((com.ggp.games.RockPaperScissors.GameDescription) game).getExploitabilityEstimator()));
-            }
             return ret;
         }
     }
