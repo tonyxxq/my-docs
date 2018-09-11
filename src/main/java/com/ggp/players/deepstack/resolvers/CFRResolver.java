@@ -25,10 +25,10 @@ public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
         }
 
         @Override
-        public ISubgameResolver create(int myId, InformationSetRange myRange, HashMap<IInformationSet, Double> opponentCFV,
+        public ISubgameResolver create(int myId, IInformationSet hiddenInfo, InformationSetRange myRange, HashMap<IInformationSet, Double> opponentCFV,
                                        ICompleteInformationStateFactory cisFactory, ArrayList<IResolvingListener> resolvingListeners)
         {
-            return new CFRResolver(myId, myRange, opponentCFV, cisFactory, resolvingListeners, cfvEstimator, depthLimit);
+            return new CFRResolver(myId, hiddenInfo, myRange, opponentCFV, cisFactory, resolvingListeners, cfvEstimator, depthLimit);
         }
     }
 
@@ -37,11 +37,11 @@ public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
     private Strategy strat = new Strategy();
     private Strategy nextStrat = new Strategy();
 
-    public CFRResolver(int myId, InformationSetRange range, HashMap<IInformationSet, Double> opponentCFV,
+    public CFRResolver(int myId, IInformationSet hiddenInfo, InformationSetRange range, HashMap<IInformationSet, Double> opponentCFV,
                        ICompleteInformationStateFactory cisFactory, ArrayList<IResolvingListener> resolvingListeners,
                        ICFVEstimator cfvEstimator, int depthLimit)
     {
-        super(myId, range, opponentCFV, resolvingListeners);
+        super(myId, hiddenInfo, range, opponentCFV, resolvingListeners);
         this.cfvEstimator = cfvEstimator;
         this.depthLimit = depthLimit;
     }

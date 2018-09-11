@@ -9,7 +9,7 @@ import java.util.Map;
 
 public interface ISubgameResolver {
     interface Factory {
-        ISubgameResolver create(int myId, InformationSetRange myRange, HashMap<IInformationSet, Double> opponentCFV,
+        ISubgameResolver create(int myId, IInformationSet hiddenInfo, InformationSetRange myRange, HashMap<IInformationSet, Double> opponentCFV,
                                 ICompleteInformationStateFactory cisFactory, ArrayList<IResolvingListener> resolvingListeners);
     }
 

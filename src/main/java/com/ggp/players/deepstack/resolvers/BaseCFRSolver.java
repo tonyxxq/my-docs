@@ -18,6 +18,7 @@ import java.util.Map;
 
 public abstract class BaseCFRSolver implements ISubgameResolver {
     protected final int myId;
+    protected IInformationSet hiddenInfo;
     protected InformationSetRange range;
     protected HashMap<IInformationSet, Double> opponentCFV;
     protected List<IResolvingListener> resolvingListeners;
@@ -27,9 +28,10 @@ public abstract class BaseCFRSolver implements ISubgameResolver {
     protected SubgameGadget subgameGadget;
     protected final int opponentId;
 
-    public BaseCFRSolver(int myId, InformationSetRange range, HashMap<IInformationSet, Double> opponentCFV,
+    public BaseCFRSolver(int myId, IInformationSet hiddenInfo, InformationSetRange range, HashMap<IInformationSet, Double> opponentCFV,
                          List<IResolvingListener> resolvingListeners) {
         this.myId = myId;
+        this.hiddenInfo = hiddenInfo;
         this.range = range;
         this.opponentCFV = opponentCFV;
         this.resolvingListeners = resolvingListeners;
@@ -42,6 +44,11 @@ public abstract class BaseCFRSolver implements ISubgameResolver {
         @Override
         public Strategy getUnnormalizedCumulativeStrategy() {
             return cumulativeStrat;
+        }
+
+        @Override
+        public IInformationSet getHiddenInfo() {
+            return hiddenInfo;
         }
     }
 

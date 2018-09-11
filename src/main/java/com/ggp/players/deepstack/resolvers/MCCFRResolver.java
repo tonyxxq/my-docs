@@ -16,8 +16,8 @@ import java.util.*;
 public class MCCFRResolver extends BaseCFRSolver implements ISubgameResolver {
     public static class Factory implements ISubgameResolver.Factory {
         @Override
-        public ISubgameResolver create(int myId, InformationSetRange myRange, HashMap<IInformationSet, Double> opponentCFV, ICompleteInformationStateFactory cisFactory, ArrayList<IResolvingListener> resolvingListeners) {
-            return new MCCFRResolver(myId, myRange, opponentCFV, resolvingListeners);
+        public ISubgameResolver create(int myId, IInformationSet hiddenInfo, InformationSetRange myRange, HashMap<IInformationSet, Double> opponentCFV, ICompleteInformationStateFactory cisFactory, ArrayList<IResolvingListener> resolvingListeners) {
+            return new MCCFRResolver(myId, hiddenInfo, myRange, opponentCFV, resolvingListeners);
         }
     }
 
@@ -26,9 +26,9 @@ public class MCCFRResolver extends BaseCFRSolver implements ISubgameResolver {
     private double explorationProb = 0.2d;
     private Random rng = new Random();
 
-    public MCCFRResolver(int myId, InformationSetRange range, HashMap<IInformationSet, Double> opponentCFV,
+    public MCCFRResolver(int myId, IInformationSet hiddenInfo, InformationSetRange range, HashMap<IInformationSet, Double> opponentCFV,
                          List<IResolvingListener> resolvingListeners) {
-        super(myId, range, opponentCFV, resolvingListeners);
+        super(myId, hiddenInfo, range, opponentCFV, resolvingListeners);
     }
 
     private static class CFRResult {

@@ -64,7 +64,7 @@ public class DeepstackPlayer implements IPlayer {
     }
 
     private ISubgameResolver createResolver() {
-        return resolverFactory.create(id, range, opponentCFV, cisFactory, resolvingListeners);
+        return resolverFactory.create(id, hiddenInfo, range, opponentCFV, cisFactory, resolvingListeners);
     }
 
     @Override

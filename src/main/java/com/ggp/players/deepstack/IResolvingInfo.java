@@ -1,6 +1,7 @@
 package com.ggp.players.deepstack;
 
 
+import com.ggp.IInformationSet;
 import com.ggp.players.deepstack.utils.Strategy;
 
 /**
@@ -8,4 +9,5 @@ import com.ggp.players.deepstack.utils.Strategy;
  */
 public interface IResolvingInfo {
     Strategy getUnnormalizedCumulativeStrategy();
+    IInformationSet getHiddenInfo();
 }
