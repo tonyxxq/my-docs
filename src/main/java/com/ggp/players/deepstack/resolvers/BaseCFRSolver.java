@@ -7,7 +7,7 @@ import com.ggp.players.deepstack.IRegretMatching;
 import com.ggp.players.deepstack.IResolvingInfo;
 import com.ggp.players.deepstack.IResolvingListener;
 import com.ggp.players.deepstack.ISubgameResolver;
-import com.ggp.players.deepstack.rerget_matching.RegretMatchingPlus;
+import com.ggp.players.deepstack.regret_matching.RegretMatchingPlus;
 import com.ggp.players.deepstack.utils.*;
 import com.ggp.utils.PlayerHelpers;
 
