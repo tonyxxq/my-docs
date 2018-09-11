@@ -16,11 +16,11 @@ import java.util.function.BiFunction;
 
 public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
     public static class Factory implements ISubgameResolver.Factory {
-        private ICFVEstimator cfvEstimator;
+        private IUtilityEstimator utilityEstimator;
         private int depthLimit;
 
-        public Factory(ICFVEstimator cfvEstimator, int depthLimit) {
-            this.cfvEstimator = cfvEstimator;
+        public Factory(IUtilityEstimator utilityEstimator, int depthLimit) {
+            this.utilityEstimator = utilityEstimator;
             this.depthLimit = depthLimit;
         }
 
@@ -28,35 +28,37 @@ public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
         public ISubgameResolver create(int myId, IInformationSet hiddenInfo, InformationSetRange myRange, HashMap<IInformationSet, Double> opponentCFV,
                                        ICompleteInformationStateFactory cisFactory, ArrayList<IResolvingListener> resolvingListeners)
         {
-            return new CFRResolver(myId, hiddenInfo, myRange, opponentCFV, cisFactory, resolvingListeners, cfvEstimator, depthLimit);
+            return new CFRResolver(myId, hiddenInfo, myRange, opponentCFV, cisFactory, resolvingListeners, utilityEstimator, depthLimit);
         }
     }
 
-    private ICFVEstimator cfvEstimator;
+    private IUtilityEstimator utilityEstimator;
     private int depthLimit = 2;
     private Strategy strat = new Strategy();
     private Strategy nextStrat = new Strategy();
 
     public CFRResolver(int myId, IInformationSet hiddenInfo, InformationSetRange range, HashMap<IInformationSet, Double> opponentCFV,
                        ICompleteInformationStateFactory cisFactory, ArrayList<IResolvingListener> resolvingListeners,
-                       ICFVEstimator cfvEstimator, int depthLimit)
+                       IUtilityEstimator utilityEstimator, int depthLimit)
     {
         super(myId, hiddenInfo, range, opponentCFV, resolvingListeners);
-        this.cfvEstimator = cfvEstimator;
+        this.utilityEstimator = utilityEstimator;
         this.depthLimit = depthLimit;
     }
 
     private static class CFRResult {
-        public double player1CFV;
-        public double player2CFV;
+        public double player1Utility;
+        public double player2Utility;
 
-        public CFRResult(double player1CFV, double player2CFV) {
-            this.player1CFV = player1CFV;
-            this.player2CFV = player2CFV;
+        public CFRResult(double player1Utility, double player2Utility) {
+            this.player1Utility = player1Utility;
+            this.player2Utility = player2Utility;
         }
     }
 
     private CFRResult cfr(GameTreeTraversalTracker tracker, int player, int depth, double p1, double p2) {
+        // CVF_i(h) = reachProb_{-i}(h) * utility_i(H)
+        // this method passes reachProb from top and returns utility
         ICompleteInformationState s = tracker.getCurrentState();
         resolvingListeners.forEach(listener -> listener.stateVisited(s, resInfo));
 
@@ -65,9 +67,9 @@ public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
         }
 
         // cutoff can only be made once i know opponentCFV for next turn i'll play
-        if (tracker.wasMyNextTurnReached() && depth > depthLimit && cfvEstimator != null) {
-            ICFVEstimator.EstimatorResult res = cfvEstimator.estimate(s, cumulativeStrat);
-            return new CFRResult(res.player1CFV, res.player2CFV);
+        if (tracker.wasMyNextTurnReached() && depth > depthLimit && utilityEstimator != null) {
+            IUtilityEstimator.EstimatorResult res = utilityEstimator.estimate(s, cumulativeStrat);
+            return new CFRResult(res.player1Utility, res.player2Utility);
         }
         List<IAction> legalActions = s.getLegalActions();
         double rndProb = tracker.getRndProb();
@@ -86,45 +88,45 @@ public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
             CFRResult ret = new CFRResult(0,0);
             for (IAction a: legalActions) {
                 CFRResult res =  callCfr.apply(s, a);
-                ret.player1CFV += res.player1CFV;
-                ret.player2CFV += res.player2CFV;
+                ret.player1Utility += res.player1Utility;
+                ret.player2Utility += res.player2Utility;
             }
             // uniform probability for each action -> average
-            ret.player1CFV /= legalActions.size();
-            ret.player2CFV /= legalActions.size();
+            ret.player1Utility /= legalActions.size();
+            ret.player2Utility /= legalActions.size();
             return ret;
         }
 
         IInformationSet is = s.getInfoSetForActingPlayer();
-        double[] cfv = new double[2];
-        double[] actionCFV = new double[2*legalActions.size()];
+        double[] utility = new double[2];
+        double[] actionUtility = new double[2*legalActions.size()];
         int i = 0;
 
         for (IAction a: legalActions) {
             double actionProb = strat.getProbability(is, a);
             CFRResult res = callCfr.apply(s, a);
-            actionCFV[2*i] = res.player1CFV;
-            actionCFV[2*i + 1] = res.player2CFV;
+            actionUtility[2*i] = res.player1Utility;
+            actionUtility[2*i + 1] = res.player2Utility;
             for (int j = 0; j < 2; ++j) {
-                cfv[j] = cfv[j] + actionProb*actionCFV[2*i + j];
+                utility[j] = utility[j] + actionProb*actionUtility[2*i + j];
             }
             i++;
         }
         if (tracker.isMyNextTurnReached()) {
             double probWithoutOpponent = rndProb * PlayerHelpers.selectByPlayerId(myId, p1, p2);
-            tracker.getNtit().addLeaf(s.getInfoSetForPlayer(opponentId), probWithoutOpponent * cfv[opponentId - 1]);
+            tracker.getNtit().addLeaf(s.getInfoSetForPlayer(opponentId), probWithoutOpponent * utility[opponentId - 1]);
         }
         // TODO: is it ok to compute both strategies at once??
         i = 0;
-        double probWithoutActingPlayer = rndProb * PlayerHelpers.selectByPlayerId(s.getActingPlayerId(), p2, p1); // \pi_{-i}
+        double probWithoutActingPlayer = rndProb * PlayerHelpers.selectByPlayerId(s.getActingPlayerId(), p2, p1); // reachProb_{-i}
         int pid = s.getActingPlayerId();
         for (IAction a: legalActions) {
-            regretMatching.addActionRegret(is, i, probWithoutActingPlayer*(actionCFV[2*i + pid - 1] - cfv[pid - 1]));
+            regretMatching.addActionRegret(is, i, probWithoutActingPlayer*(actionUtility[2*i + pid - 1] - utility[pid - 1]));
             i++;
         }
         regretMatching.getRegretMatchedStrategy(is, nextStrat);
 
-        CFRResult ret = new CFRResult(cfv[0], cfv[1]);
+        CFRResult ret = new CFRResult(utility[0], utility[1]);
 
         return ret;
     }
@@ -148,7 +150,7 @@ public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
                 GameTreeTraversalTracker stateTracker = tracker.visitRandom(s, rndProb);
                 IInformationSet os = s.getInfoSetForPlayer(opponentId);
                 CFRResult res = PlayerHelpers.callWithOrderedParams(myId, subgameGadget.getFollowProb(os), 1d, (r1, r2) -> cfr(stateTracker, myId, 0, r1, r2));
-                double osCFV = PlayerHelpers.selectByPlayerId(opponentId, res.player1CFV, res.player2CFV) * rndProb;
+                double osCFV = PlayerHelpers.selectByPlayerId(opponentId, res.player1Utility, res.player2Utility) * rndProb;
                 currentOpponentCFV.merge(os, osCFV, (oldV, newV) -> oldV + newV);
             }
             for (IInformationSet os: opponentCFV.keySet()) {
