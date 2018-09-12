@@ -56,7 +56,7 @@ public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
         }
     }
 
-    private CFRResult cfr(GameTreeTraversalTracker tracker, int player, int depth, double p1, double p2) {
+    private CFRResult cfr(GameTreeTraversalTracker tracker, int player, int depth, double reachProb1, double reachProb2) {
         // CVF_i(h) = reachProb_{-i}(h) * utility_i(H)
         // this method passes reachProb from top and returns utility
         ICompleteInformationState s = tracker.getCurrentState();
@@ -75,7 +75,7 @@ public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
         double rndProb = tracker.getRndProb();
 
         BiFunction<ICompleteInformationState, IAction, CFRResult> callCfr = (x, a) -> {
-            double np1 = p1, np2 = p2;
+            double np1 = reachProb1, np2 = reachProb2;
             if (s.getActingPlayerId() == 1) {
                 np1 *= strat.getProbability(s.getInfoSetForActingPlayer(), a);
             } else if (s.getActingPlayerId() == 2) {
@@ -113,12 +113,12 @@ public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
             i++;
         }
         if (tracker.isMyNextTurnReached()) {
-            double probWithoutOpponent = rndProb * PlayerHelpers.selectByPlayerId(myId, p1, p2);
+            double probWithoutOpponent = rndProb * PlayerHelpers.selectByPlayerId(myId, reachProb1, reachProb2);
             tracker.getNtit().addLeaf(s.getInfoSetForPlayer(opponentId), probWithoutOpponent * utility[opponentId - 1]);
         }
         // TODO: is it ok to compute both strategies at once??
         i = 0;
-        double probWithoutActingPlayer = rndProb * PlayerHelpers.selectByPlayerId(s.getActingPlayerId(), p2, p1); // reachProb_{-i}
+        double probWithoutActingPlayer = rndProb * PlayerHelpers.selectByPlayerId(s.getActingPlayerId(), reachProb2, reachProb1); // reachProb_{-i}
         int pid = s.getActingPlayerId();
         for (IAction a: legalActions) {
             regretMatching.addActionRegret(is, i, probWithoutActingPlayer*(actionUtility[2*i + pid - 1] - utility[pid - 1]));
@@ -146,6 +146,7 @@ public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
             }
             for (Map.Entry<ICompleteInformationState, Double> stateProb: range.getProbabilities()) {
                 ICompleteInformationState s = stateProb.getKey();
+                // unnormalized reachProb_{-opponentId}
                 double rndProb = stateProb.getValue();
                 GameTreeTraversalTracker stateTracker = tracker.visitRandom(s, rndProb);
                 IInformationSet os = s.getInfoSetForPlayer(opponentId);
