@@ -149,7 +149,7 @@ public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
                 double rndProb = stateProb.getValue();
                 GameTreeTraversalTracker stateTracker = tracker.visitRandom(s, rndProb);
                 IInformationSet os = s.getInfoSetForPlayer(opponentId);
-                CFRResult res = PlayerHelpers.callWithOrderedParams(myId, subgameGadget.getFollowProb(os), 1d, (r1, r2) -> cfr(stateTracker, myId, 0, r1, r2));
+                CFRResult res = PlayerHelpers.callWithOrderedParams(myId, 1d, subgameGadget.getFollowProb(os), (r1, r2) -> cfr(stateTracker, myId, 0, r1, r2));
                 double osCFV = PlayerHelpers.selectByPlayerId(opponentId, res.player1Utility, res.player2Utility) * rndProb;
                 currentOpponentCFV.merge(os, osCFV, (oldV, newV) -> oldV + newV);
             }
