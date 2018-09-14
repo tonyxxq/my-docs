@@ -14,5 +14,5 @@ public interface IUtilityEstimator {
         }
     }
 
-    EstimatorResult estimate(ICompleteInformationState s, Strategy strat);
+    EstimatorResult estimate(ICompleteInformationState s);
 }

@@ -12,7 +12,7 @@ public class RandomPlayoutUtilityEstimator implements IUtilityEstimator {
     private int iters = 5;
     private RandomItemSelector<IAction> rnd = new RandomItemSelector<>();
     @Override
-    public EstimatorResult estimate(ICompleteInformationState s, Strategy strat) {
+    public EstimatorResult estimate(ICompleteInformationState s) {
         if (s.isTerminal()) {
             return new EstimatorResult(s.getPayoff(1), s.getPayoff(2));
         }

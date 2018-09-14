@@ -13,7 +13,7 @@ import com.ggp.players.deepstack.utils.Strategy;
 
 import java.util.*;
 
-public class MCCFRResolver extends BaseCFRSolver implements ISubgameResolver {
+public class MCCFRResolver extends BaseCFRResolver implements ISubgameResolver {
     public static class Factory implements ISubgameResolver.Factory {
         @Override
         public ISubgameResolver create(int myId, IInformationSet hiddenInfo, InformationSetRange myRange, HashMap<IInformationSet, Double> opponentCFV, ICompleteInformationStateFactory cisFactory, ArrayList<IResolvingListener> resolvingListeners) {

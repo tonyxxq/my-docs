@@ -7,6 +7,7 @@ import com.ggp.players.deepstack.IRegretMatching;
 import com.ggp.players.deepstack.IResolvingInfo;
 import com.ggp.players.deepstack.IResolvingListener;
 import com.ggp.players.deepstack.ISubgameResolver;
+import com.ggp.players.deepstack.regret_matching.RegretMatching;
 import com.ggp.players.deepstack.regret_matching.RegretMatchingPlus;
 import com.ggp.players.deepstack.utils.*;
 import com.ggp.utils.PlayerHelpers;
@@ -16,7 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class BaseCFRSolver implements ISubgameResolver {
+public abstract class BaseCFRResolver implements ISubgameResolver {
     protected final int myId;
     protected IInformationSet hiddenInfo;
     protected InformationSetRange range;
@@ -28,8 +29,8 @@ public abstract class BaseCFRSolver implements ISubgameResolver {
     protected SubgameGadget subgameGadget;
     protected final int opponentId;
 
-    public BaseCFRSolver(int myId, IInformationSet hiddenInfo, InformationSetRange range, HashMap<IInformationSet, Double> opponentCFV,
-                         List<IResolvingListener> resolvingListeners) {
+    public BaseCFRResolver(int myId, IInformationSet hiddenInfo, InformationSetRange range, HashMap<IInformationSet, Double> opponentCFV,
+                           List<IResolvingListener> resolvingListeners) {
         this.myId = myId;
         this.hiddenInfo = hiddenInfo;
         this.range = range;

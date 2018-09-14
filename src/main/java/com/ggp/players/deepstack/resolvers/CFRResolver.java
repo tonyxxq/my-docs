@@ -14,7 +14,7 @@ import com.ggp.utils.PlayerHelpers;
 import java.util.*;
 import java.util.function.BiFunction;
 
-public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
+public class CFRResolver extends BaseCFRResolver implements ISubgameResolver {
     public static class Factory implements ISubgameResolver.Factory {
         private IUtilityEstimator utilityEstimator;
         private int depthLimit;
@@ -68,7 +68,7 @@ public class CFRResolver extends BaseCFRSolver implements ISubgameResolver {
 
         // cutoff can only be made once i know opponentCFV for next turn i'll play
         if (tracker.wasMyNextTurnReached() && depth > depthLimit && utilityEstimator != null) {
-            IUtilityEstimator.EstimatorResult res = utilityEstimator.estimate(s, cumulativeStrat);
+            IUtilityEstimator.EstimatorResult res = utilityEstimator.estimate(s);
             return new CFRResult(res.player1Utility, res.player2Utility);
         }
         List<IAction> legalActions = s.getLegalActions();

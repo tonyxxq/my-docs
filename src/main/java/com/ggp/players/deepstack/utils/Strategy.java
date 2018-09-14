@@ -133,4 +133,12 @@ public class Strategy implements IStrategy {
         return strategy.keySet();
     }
 
+    public Strategy copy() {
+        Strategy ret = new Strategy();
+        for (IInformationSet is: strategy.keySet()) {
+            ret.strategy.put(is, new HashMap<>(strategy.get(is)));
+        }
+        return ret;
+    }
+
 }

@@ -46,6 +46,13 @@ abstract class BaseRegretMatching implements IRegretMatching {
     }
 
     @Override
+    public void getRegretMatchedStrategy(Strategy strat) {
+        for (IInformationSet is: regrets.keySet()) {
+            getRegretMatchedStrategy(is, strat);
+        }
+    }
+
+    @Override
     public void initInfoSet(IInformationSet is) {
         getOrCreateActionRegrets(is);
     }
