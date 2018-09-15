@@ -20,6 +20,12 @@ public class PerceptSequence {
             percepts = new ArrayList<>();
             return ret;
         }
+
+        public Builder copy() {
+            Builder ret = new Builder();
+            ret.percepts = new ArrayList<>(this.percepts);
+            return ret;
+        }
     }
 
     private PerceptSequence(ArrayList<IPercept> percepts) {

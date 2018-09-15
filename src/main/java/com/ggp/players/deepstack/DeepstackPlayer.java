@@ -18,7 +18,7 @@ public class DeepstackPlayer implements IPlayer {
         }
 
         @Override
-        public IPlayer create(IGameDescription game, int role) {
+        public DeepstackPlayer create(IGameDescription game, int role) {
             DeepstackPlayer ret = new DeepstackPlayer(role, game, resolverFactory);
             if (listener != null) ret.registerResolvingListener(listener);
             return ret;
@@ -41,6 +41,29 @@ public class DeepstackPlayer implements IPlayer {
     private ArrayList<IResolvingListener> resolvingListeners = new ArrayList<>();
     private ISubgameResolver.Factory resolverFactory;
     private double opponentCFVNorm = 1;
+
+    private DeepstackPlayer(int id, InformationSetRange range, IInformationSet hiddenInfo,
+                            ICompleteInformationStateFactory cisFactory,
+                            NextTurnInfoTree ntit, Map<IInformationSet, NextRangeTree> myISToNRT, IGameDescription gameDesc,
+                            PerceptSequence.Builder myPSBuilder, IAction myLastAction, PerceptSequenceMap psMap,
+                            IStrategy lastCumulativeStrategy, ArrayList<IResolvingListener> resolvingListeners,
+                            ISubgameResolver.Factory resolverFactory, double opponentCFVNorm) {
+        this.id = id;
+        this.opponentId = PlayerHelpers.getOpponentId(id);
+        this.range = range;
+        this.hiddenInfo = hiddenInfo;
+        this.cisFactory = cisFactory;
+        this.ntit = ntit;
+        this.myISToNRT = myISToNRT;
+        this.gameDesc = gameDesc;
+        this.myPSBuilder = myPSBuilder;
+        this.myLastAction = myLastAction;
+        this.psMap = psMap;
+        this.lastCumulativeStrategy = lastCumulativeStrategy;
+        this.resolvingListeners = resolvingListeners;
+        this.resolverFactory = resolverFactory;
+        this.opponentCFVNorm = opponentCFVNorm;
+    }
 
     public DeepstackPlayer(int id, IGameDescription gameDesc, ISubgameResolver.Factory resolverFactory) {
         this.id = id;
@@ -84,14 +107,42 @@ public class DeepstackPlayer implements IPlayer {
         return id;
     }
 
-    private IAction act(IAction forcedAction, long timeoutMillis) {
+    public ISubgameResolver.ActResult computeStrategy(long timeoutMillis) {
         IterationTimer timer = new IterationTimer(timeoutMillis);
         timer.start();
         opponentCFV = new HashMap<>(ntit.getOpponentValues().size());
         ntit.getOpponentValues().forEach((is, cfv) -> opponentCFV.put(is, cfv.getValue() / opponentCFVNorm));
         range.advance(psMap.getPossibleSequences(myPSBuilder.close()), myISToNRT, lastCumulativeStrategy);
         ISubgameResolver r = createResolver();
-        ISubgameResolver.ActResult res = r.act(timer);
+        return r.act(timer);
+    }
+
+    public DeepstackPlayer getNewPlayerByAction(IAction forcedAction, ISubgameResolver.ActResult actRes) {
+        InformationSetRange nRange = range.copy();
+        return new DeepstackPlayer(id, nRange, hiddenInfo.next(forcedAction), cisFactory, actRes.actionToNTIT.get(forcedAction),
+                actRes.myISToNRT, gameDesc, new PerceptSequence.Builder(), forcedAction, actRes.actionToPsMap.get(forcedAction),
+                actRes.cumulativeStrategy, resolvingListeners, resolverFactory, actRes.opponentCFVNorm);
+    }
+
+    public DeepstackPlayer getNewPlayerByPercept(IPercept p) {
+        InformationSetRange nRange = range.copy();
+        PerceptSequence.Builder nPSBuilder = myPSBuilder.copy();
+        nPSBuilder.add(p);
+        return new DeepstackPlayer(id, nRange, hiddenInfo.applyPercept(p), cisFactory, ntit.getNext(p),
+                myISToNRT, gameDesc, nPSBuilder, myLastAction, psMap,
+                lastCumulativeStrategy, resolvingListeners, resolverFactory, opponentCFVNorm);
+    }
+
+    public DeepstackPlayer copy() {
+        InformationSetRange nRange = range.copy();
+        PerceptSequence.Builder nPSBuilder = myPSBuilder.copy();
+        return new DeepstackPlayer(id, nRange, hiddenInfo, cisFactory, ntit,
+                myISToNRT, gameDesc, nPSBuilder, myLastAction, psMap,
+                lastCumulativeStrategy, resolvingListeners, resolverFactory, opponentCFVNorm);
+    }
+
+    private IAction act(IAction forcedAction, long timeoutMillis) {
+        ISubgameResolver.ActResult res = computeStrategy(timeoutMillis);
         lastCumulativeStrategy = res.cumulativeStrategy;
 
         IAction selectedAction;

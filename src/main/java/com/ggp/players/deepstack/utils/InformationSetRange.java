@@ -63,6 +63,13 @@ public class InformationSetRange {
         range = newRange;
     }
 
+    public InformationSetRange copy() {
+        InformationSetRange ret = new InformationSetRange(myId);
+        ret.range = new HashMap<>(range);
+        ret.norm = norm;
+        return ret;
+    }
+
     public double getNorm() {
         return norm;
     }
