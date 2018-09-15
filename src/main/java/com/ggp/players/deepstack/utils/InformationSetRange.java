@@ -39,22 +39,29 @@ public class InformationSetRange {
     public void advance(Set<PerceptSequence> possibleOpponentPerceptSequences, Map<IInformationSet, NextRangeTree> nrtMap, IStrategy topLevelStrategy) {
         HashMap<ICompleteInformationState, Double> newRange = new HashMap<>();
         double probSum = 0;
-        for(HashMap.Entry<ICompleteInformationState, Double> entry: range.entrySet()) {
-            NextRangeTree nrt = nrtMap.get(entry.getKey().getInfoSetForPlayer(myId));
+        // CIS from previous decision point are mapped to CIS in the current decision point
+        // Each CIS is mapped through all paths compatible with possible opponent percept sequences
+        // Each path is given by chance action probabilities along the way and top-level action at previous decision point,
+        // which is converted to probability using strategy from previous decision point.
+        for(HashMap.Entry<ICompleteInformationState, Double> origEntry: range.entrySet()) {
+            IInformationSet myOrigIS = origEntry.getKey().getInfoSetForPlayer(myId);
+            NextRangeTree nrt = nrtMap.get(myOrigIS);
             for (PerceptSequence ps: possibleOpponentPerceptSequences) {
                 Map<ICompleteInformationState, ?extends Map<IAction, Double>> newState = nrt.getRange(ps);
                 if (newState == null) continue; // this percept sequence may not be achievable from given input IS
                 for (Map.Entry<ICompleteInformationState, ?extends  Map<IAction, Double>> newStateEntry: newState.entrySet()) {
-                    double isProb = 0;
-                    for (Map.Entry<IAction, Double> probMap: newStateEntry.getValue().entrySet()) {
-                        double prob = probMap.getValue();
-                        if (probMap.getKey() != null) {
-                            prob *= topLevelStrategy.getProbability(newStateEntry.getKey().getInfoSetForPlayer(myId), probMap.getKey());
+                    ICompleteInformationState resultingState = newStateEntry.getKey();
+                    Map<IAction, Double> reachProbMap = newStateEntry.getValue();
+                    double reachProbForNewIS = 0;
+                    for (Map.Entry<IAction, Double> reachProbTuple: reachProbMap.entrySet()) {
+                        double prob = reachProbTuple.getValue();
+                        if (reachProbTuple.getKey() != null) {
+                            prob *= topLevelStrategy.getProbability(myOrigIS, reachProbTuple.getKey());
                         }
-                        isProb += prob;
+                        reachProbForNewIS += prob;
                     }
-                    newRange.merge(newStateEntry.getKey(), isProb, (oldV, newV) -> oldV + newV);
-                    probSum += isProb;
+                    newRange.merge(resultingState, reachProbForNewIS, (oldV, newV) -> oldV + newV);
+                    probSum += reachProbForNewIS;
                 }
             }
         }
