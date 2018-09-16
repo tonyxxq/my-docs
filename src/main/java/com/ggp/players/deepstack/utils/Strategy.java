@@ -133,6 +133,10 @@ public class Strategy implements IStrategy {
         return strategy.keySet();
     }
 
+    public int countDefinedInformationSets() {
+        return strategy.size();
+    }
+
     public Strategy copy() {
         Strategy ret = new Strategy();
         for (IInformationSet is: strategy.keySet()) {
