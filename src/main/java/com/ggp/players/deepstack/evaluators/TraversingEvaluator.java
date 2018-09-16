@@ -40,10 +40,23 @@ public class TraversingEvaluator {
         return pl;
     }
 
-    private void printAction(IAction a, int depth) {
-        String indent = "";
-        for (int i = 0; i < depth; ++i) indent += " ";
-        System.out.println(indent + "Taking action " + a);
+    private String getActionStr(int actionIdx, int actions) {
+        return " " + (actionIdx + 1) + "/" + actions;
+    }
+
+    private void printAction(int actionIdx, int actions) {
+        System.out.print(getActionStr(actionIdx, actions));
+    }
+
+    private void unprintAction(int actionIdx, int actions) {
+        String tmp = "";
+        String actionStr = getActionStr(actionIdx, actions);
+        String clearStr = "";
+        for (int i = 0; i < actionStr.length(); ++i) {
+            tmp += "\b";
+            clearStr += " ";
+        }
+        System.out.print(tmp + clearStr + tmp);
     }
 
     private DeepstackPlayer ensureDifference(DeepstackPlayer orig, DeepstackPlayer next) {
@@ -56,13 +69,16 @@ public class TraversingEvaluator {
         List<IAction> legalActions = s.getLegalActions();
         if (s.isRandomNode()) {
             double actionProb = 1d/legalActions.size();
+            int actionIdx = 0;
             for (IAction a: legalActions) {
                 Iterable<IPercept> percepts = s.getPercepts(a);
                 DeepstackPlayer npl1 = applyPercepts(pl1, 1, percepts), npl2 = applyPercepts(pl2, 2, percepts);
                 npl1 = ensureDifference(pl1, npl1);
                 npl2 = ensureDifference(pl2, npl2);
-                printAction(a, depth);
+                printAction(actionIdx, legalActions.size());
                 aggregateStrategy(entries, s.next(a), npl1, npl2, reachProb1 * actionProb, reachProb2 * actionProb, depth + 1);
+                unprintAction(actionIdx, legalActions.size());
+                actionIdx++;
             }
             return;
         }
@@ -120,7 +136,7 @@ public class TraversingEvaluator {
         ISubgameResolver.ActResult actResult = currentPlayer.computeStrategy(timeoutMs);
         currentPlayer.unregisterResolvingListener(stratAggregator);
 
-
+        int actionIdx = 0;
         for (IAction a: legalActions) {
             double actionProb = actResult.cumulativeStrategy.getProbability(is, a);
             double nrp1 = reachProb1, nrp2 = reachProb2;
@@ -137,8 +153,10 @@ public class TraversingEvaluator {
             npl2 = applyPercepts(npl2, 2, percepts);
             npl1 = ensureDifference(pl1, npl1);
             npl2 = ensureDifference(pl2, npl2);
-            printAction(a, depth);
+            printAction(actionIdx, legalActions.size());
             aggregateStrategy(entries, s.next(a), npl1, npl2, nrp1, nrp2, depth + 1);
+            unprintAction(actionIdx, legalActions.size());
+            actionIdx++;
         }
     }
 
