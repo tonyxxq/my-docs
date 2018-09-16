@@ -25,12 +25,12 @@ public abstract class BaseCFRResolver implements ISubgameResolver {
     protected List<IResolvingListener> resolvingListeners;
     protected IResolvingInfo resInfo = new ResolvingInfo();
     protected Strategy cumulativeStrat = new Strategy();
-    protected IRegretMatching regretMatching = new RegretMatchingPlus();
+    protected IRegretMatching regretMatching;
     protected SubgameGadget subgameGadget;
     protected final int opponentId;
 
     public BaseCFRResolver(int myId, IInformationSet hiddenInfo, InformationSetRange range, HashMap<IInformationSet, Double> opponentCFV,
-                           List<IResolvingListener> resolvingListeners) {
+                           List<IResolvingListener> resolvingListeners, IRegretMatching regretMatching) {
         this.myId = myId;
         this.hiddenInfo = hiddenInfo;
         this.range = range;
@@ -39,6 +39,7 @@ public abstract class BaseCFRResolver implements ISubgameResolver {
         if (this.resolvingListeners == null) this.resolvingListeners = new ArrayList<>();
         this.subgameGadget = new SubgameGadget(opponentCFV);
         this.opponentId = PlayerHelpers.getOpponentId(myId);
+        this.regretMatching = regretMatching;
     }
 
     private class ResolvingInfo implements IResolvingInfo {

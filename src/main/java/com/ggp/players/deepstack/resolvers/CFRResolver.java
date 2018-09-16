@@ -5,6 +5,8 @@ import com.ggp.ICompleteInformationState;
 import com.ggp.ICompleteInformationStateFactory;
 import com.ggp.IInformationSet;
 import com.ggp.players.deepstack.*;
+import com.ggp.players.deepstack.regret_matching.RegretMatching;
+import com.ggp.players.deepstack.regret_matching.RegretMatchingPlus;
 import com.ggp.players.deepstack.utils.GameTreeTraversalTracker;
 import com.ggp.players.deepstack.utils.InformationSetRange;
 import com.ggp.players.deepstack.utils.IterationTimer;
@@ -18,6 +20,7 @@ public class CFRResolver extends BaseCFRResolver implements ISubgameResolver {
     public static class Factory implements ISubgameResolver.Factory {
         private IUtilityEstimator utilityEstimator;
         private int depthLimit;
+        private IRegretMatching regretMatching = new RegretMatchingPlus();
 
         public Factory(IUtilityEstimator utilityEstimator, int depthLimit) {
             this.utilityEstimator = utilityEstimator;
@@ -28,7 +31,16 @@ public class CFRResolver extends BaseCFRResolver implements ISubgameResolver {
         public ISubgameResolver create(int myId, IInformationSet hiddenInfo, InformationSetRange myRange, HashMap<IInformationSet, Double> opponentCFV,
                                        ICompleteInformationStateFactory cisFactory, ArrayList<IResolvingListener> resolvingListeners)
         {
-            return new CFRResolver(myId, hiddenInfo, myRange, opponentCFV, cisFactory, resolvingListeners, utilityEstimator, depthLimit);
+            return new CFRResolver(myId, hiddenInfo, myRange, opponentCFV, cisFactory, resolvingListeners, regretMatching, utilityEstimator, depthLimit);
+        }
+
+        @Override
+        public String getConfigString() {
+            return "DepthLimitedCFR{" +
+                    "utilityEstimator=" + ((utilityEstimator == null) ? "null" : utilityEstimator.getConfigString()) +
+                    ", depthLimit=" + depthLimit +
+                    ", regretMatching=" + regretMatching.getConfigString() +
+                    '}';
         }
     }
 
@@ -39,9 +51,9 @@ public class CFRResolver extends BaseCFRResolver implements ISubgameResolver {
 
     public CFRResolver(int myId, IInformationSet hiddenInfo, InformationSetRange range, HashMap<IInformationSet, Double> opponentCFV,
                        ICompleteInformationStateFactory cisFactory, ArrayList<IResolvingListener> resolvingListeners,
-                       IUtilityEstimator utilityEstimator, int depthLimit)
+                       IRegretMatching regretMatching, IUtilityEstimator utilityEstimator, int depthLimit)
     {
-        super(myId, hiddenInfo, range, opponentCFV, resolvingListeners);
+        super(myId, hiddenInfo, range, opponentCFV, resolvingListeners, regretMatching);
         this.utilityEstimator = utilityEstimator;
         this.depthLimit = depthLimit;
     }

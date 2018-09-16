@@ -11,6 +11,7 @@ public interface ISubgameResolver {
     interface Factory {
         ISubgameResolver create(int myId, IInformationSet hiddenInfo, InformationSetRange myRange, HashMap<IInformationSet, Double> opponentCFV,
                                 ICompleteInformationStateFactory cisFactory, ArrayList<IResolvingListener> resolvingListeners);
+        String getConfigString();
     }
 
     class ActResult {

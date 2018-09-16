@@ -31,4 +31,11 @@ public class RandomPlayoutUtilityEstimator implements IUtilityEstimator {
         }
         return new EstimatorResult(u1/iters, u2/iters);
     }
+
+    @Override
+    public String getConfigString() {
+        return "RandomPlayout{" +
+                "i=" + iters +
+                '}';
+    }
 }

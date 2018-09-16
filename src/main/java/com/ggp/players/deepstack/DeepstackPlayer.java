@@ -180,4 +180,10 @@ public class DeepstackPlayer implements IPlayer {
         hiddenInfo = hiddenInfo.applyPercept(percept);
         ntit = ntit.getNext(percept);
     }
+
+    public String getConfigString() {
+        return "DeepstackPlayer{" +
+                "subgameResolver=" + resolverFactory.getConfigString() +
+                '}';
+    }
 }

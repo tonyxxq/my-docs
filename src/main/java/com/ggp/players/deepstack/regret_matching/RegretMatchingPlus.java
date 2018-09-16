@@ -6,4 +6,9 @@ public class RegretMatchingPlus extends BaseRegretMatching {
     protected double sumRegrets(double r1, double r2) {
         return Math.max(0, r1 + r2);
     }
+
+    @Override
+    public String getConfigString() {
+        return "RM+";
+    }
 }

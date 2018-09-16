@@ -4,8 +4,10 @@ import com.ggp.IAction;
 import com.ggp.ICompleteInformationState;
 import com.ggp.ICompleteInformationStateFactory;
 import com.ggp.IInformationSet;
+import com.ggp.players.deepstack.IRegretMatching;
 import com.ggp.players.deepstack.IResolvingListener;
 import com.ggp.players.deepstack.ISubgameResolver;
+import com.ggp.players.deepstack.regret_matching.RegretMatchingPlus;
 import com.ggp.players.deepstack.utils.GameTreeTraversalTracker;
 import com.ggp.players.deepstack.utils.InformationSetRange;
 import com.ggp.players.deepstack.utils.IterationTimer;
@@ -15,20 +17,36 @@ import java.util.*;
 
 public class MCCFRResolver extends BaseCFRResolver implements ISubgameResolver {
     public static class Factory implements ISubgameResolver.Factory {
+        private double targetingProb = 0d;
+        private double explorationProb = 0.2d;
+        private IRegretMatching regretMatching = new RegretMatchingPlus();
+
         @Override
         public ISubgameResolver create(int myId, IInformationSet hiddenInfo, InformationSetRange myRange, HashMap<IInformationSet, Double> opponentCFV, ICompleteInformationStateFactory cisFactory, ArrayList<IResolvingListener> resolvingListeners) {
-            return new MCCFRResolver(myId, hiddenInfo, myRange, opponentCFV, resolvingListeners);
+            return new MCCFRResolver(myId, hiddenInfo, myRange, opponentCFV, resolvingListeners, regretMatching, targetingProb, explorationProb);
+        }
+
+        @Override
+        public String getConfigString() {
+            return "MC-CFR{" +
+                    ", targetingProb=" + targetingProb +
+                    ", explorationProb=" + explorationProb +
+                    ", regretMatching=" + regretMatching.getConfigString() +
+                    '}';
         }
     }
 
     private Strategy strat = new Strategy();
-    private double targetingProb = 0d;
-    private double explorationProb = 0.2d;
+    private double targetingProb;
+    private double explorationProb;
     private Random rng = new Random();
 
     public MCCFRResolver(int myId, IInformationSet hiddenInfo, InformationSetRange range, HashMap<IInformationSet, Double> opponentCFV,
-                         List<IResolvingListener> resolvingListeners) {
-        super(myId, hiddenInfo, range, opponentCFV, resolvingListeners);
+                         List<IResolvingListener> resolvingListeners, IRegretMatching regretMatching,
+                         double targetingProb, double explorationProb) {
+        super(myId, hiddenInfo, range, opponentCFV, resolvingListeners, regretMatching);
+        this.targetingProb = targetingProb;
+        this.explorationProb = explorationProb;
     }
 
     private static class CFRResult {

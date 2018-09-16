@@ -10,4 +10,5 @@ public interface IRegretMatching {
     void getRegretMatchedStrategy(IInformationSet is, Strategy strat);
     void getRegretMatchedStrategy(Strategy strat);
     void initInfoSet(IInformationSet is);
+    String getConfigString();
 }

@@ -5,4 +5,9 @@ public class RegretMatching extends BaseRegretMatching {
     protected double sumRegrets(double r1, double r2) {
         return r1 + r2;
     }
+
+    @Override
+    public String getConfigString() {
+        return "RM";
+    }
 }

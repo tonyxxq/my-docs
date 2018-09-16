@@ -15,4 +15,5 @@ public interface IUtilityEstimator {
     }
 
     EstimatorResult estimate(ICompleteInformationState s);
+    String getConfigString();
 }
