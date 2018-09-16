@@ -82,8 +82,11 @@ public class DeepstackPlayer implements IPlayer {
     }
 
     public void registerResolvingListener(IResolvingListener listener) {
-        if (listener != null && !resolvingListeners.contains(listener))
-            resolvingListeners.add(listener);
+        if (listener != null) resolvingListeners.add(listener);
+    }
+
+    public void unregisterResolvingListener(IResolvingListener listener) {
+        if (listener != null) resolvingListeners.remove(listener);
     }
 
     private ISubgameResolver createResolver() {
