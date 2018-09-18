@@ -1,8 +1,14 @@
 - outline
 
+  > 行为控制的过程：
+  >
+  > 运动控制－>传感器融合－>定位－>预测->行为控制->路径->运动控制
+
   ![](./imgs/1.png)
 
 - overview
+
+  > 行为规划没有考虑执行细节和安全性
 
   ![](./imgs/2.png)
 
@@ -15,14 +21,34 @@
 - 有限状态机的优缺点
 
   > 图中使用了自动售货机作为例子
+  >
+  > 优点：１．可以很容易的推理
+  >
+  > ​	　２．状态空间少，容易维护
+  >
+  > 缺点：１．容易被滥用
+  >
+  > ​	　２．设计不好，后来会增加其他的状态
+  >
+  > 　　　３．当需要的状态很多的时候不容易维护
+  >
+  > 例如：当需要增加支持１分镍币的时候，下方需要增加２０个状态。　
 
   ![](./imgs/4.png)
 
+- 高速上的可能出现的状态
+
+  ![](imgs/10.png)
+
 - 高速路上使用有限状态机的例子
+
+  > 在变道之前都有一个准备的状态，用于去调整速度和所变的车道一致和打开转向灯。
 
   ![](./imgs/5.png)
 
-  > 输入数据，除了之前的状态，其他都需要。
+  > 自动售货机的例子，只根据投放的硬币数量去确定当前的状态。
+  >
+  > 但是自动驾驶要复杂得多，状态转换函数需要输入如下选中的数据。
 
   ![](./imgs/6.png)
 
@@ -67,15 +93,64 @@
 
 - SPEED COST
 
+  > 稍微低于最高限速可以允许车辆速度上有波动，高于限速损失函数为１，不动好于超速行驶。
+  >
+  > 下方的等式就是求解出分段函数，带入当前速度ｖ，求出损失函数。
+
   ![](./imgs/7.png)
 
-  Example Cost Function - Lane Change Penalty
+- 车道变换的损失
+
+  > 注意：当前车辆到终点的距离（ｓ）越大变道成本越小，当前车辆到终点的距离越小变道成本越大。
+  >
+  > 当前车辆车道到目标车道的距离（ｄ）越大成本越大，反之越小。
+  >
+  > 使用sigmoid函数表示
+  >
+  > ![](imgs/11.png)
 
   ![](imgs/8.png)
 
-  In the image above, the blue self driving car (bottom left) is trying to get to the goal (gold star). It's currently in the correct lane but the green car is going very slowly, so it considers whether it should perform a lane change (LC) or just keep lane (KL). These options are shown as lighter blue vehicles with a dashed outline.
+  损失函数
 
-  If we want to design a cost function that deals with lane choice, it will be helpful to establish what the relevant variables are. In this case, we can define:
+  > goal_lane：目标所在的车道
+  >
+  > intended_lane：当前车辆所在的车道
+  >
+  > final_lane：车道变换后所在的车道
+  >
+  > distance_to_goal：到目标的横向距离
+  >
+  > 以上车道都是距离值
 
-  - **\Delta s = s_G - sΔs=sG​−s** how much distance the vehicle will have before it has to get into the goal lane.
-  - **\Delta d = d_G - d_{LC/KL}Δd=dG​−dLC/KL​** the lateral distance between the goal lane and the options being considered. In this case \Delta d_{KL} = d_G - d_{KL}ΔdKL​=dG​−dKL​ would be zero and \Delta d_{LC} = d_G - d_{LC}ΔdLC​=dG​−dLC​ would not.
+  ```python
+  float goal_distance_cost(int goal_lane, int intended_lane, int final_lane, float distance_to_goal) {
+      /*
+      The cost increases with both the distance of intended lane from the goal
+      and the distance of the final lane from the goal. The cost of being out of the 
+      goal lane also becomes larger as vehicle approaches the goal.
+      */
+      int delta_d = 2.0*goal_lane - intended_lane - final_lane;
+      float cost = 1 - exp(-(abs(delta_d) / distance_to_goal));
+      return cost;
+  }
+  ```
+
+  ```python
+  float inefficiency_cost(int target_speed, int intended_lane, int final_lane, vector<int> lane_speeds) {
+      /*
+      Cost becomes higher for trajectories with intended lane and final lane that have traffic slower than target_speed.
+      */
+
+      float speed_intended = lane_speeds[intended_lane];
+      float speed_final = lane_speeds[final_lane];
+      float cost = (2.0*target_speed - speed_intended - speed_final)/target_speed;
+      return cost;
+  }
+  ```
+
+- 在设计损失函数的时候可能考虑的问题
+
+  ![](imgs/13.png)　　
+
+  ​
