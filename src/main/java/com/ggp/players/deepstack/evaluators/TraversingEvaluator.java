@@ -11,6 +11,7 @@ import com.ggp.utils.PlayerHelpers;
 import com.ggp.utils.TimedCounter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -64,7 +65,17 @@ public class TraversingEvaluator {
         return next;
     }
 
-    private void aggregateStrategy(List<EvaluatorEntry> entries, ICompleteInformationState s, DeepstackPlayer pl1, DeepstackPlayer pl2, double reachProb1, double reachProb2, int depth) {
+    private static class ActCacheEntry {
+        public ISubgameResolver.ActResult actResult;
+        public DeepstackPlayer playerWithComputedStrat;
+
+        public ActCacheEntry(ISubgameResolver.ActResult actResult, DeepstackPlayer playerWithComputedStrat) {
+            this.actResult = actResult;
+            this.playerWithComputedStrat = playerWithComputedStrat;
+        }
+    }
+
+    private void aggregateStrategy(HashMap<IInformationSet, ActCacheEntry> actCache, List<EvaluatorEntry> entries, ICompleteInformationState s, DeepstackPlayer pl1, DeepstackPlayer pl2, double reachProb1, double reachProb2, int depth) {
         if (s.isTerminal()) return;
         List<IAction> legalActions = s.getLegalActions();
         if (s.isRandomNode()) {
@@ -76,7 +87,7 @@ public class TraversingEvaluator {
                 npl1 = ensureDifference(pl1, npl1);
                 npl2 = ensureDifference(pl2, npl2);
                 printAction(actionIdx, legalActions.size());
-                aggregateStrategy(entries, s.next(a), npl1, npl2, reachProb1 * actionProb, reachProb2 * actionProb, depth + 1);
+                aggregateStrategy(actCache, entries, s.next(a), npl1, npl2, reachProb1 * actionProb, reachProb2 * actionProb, depth + 1);
                 unprintAction(actionIdx, legalActions.size());
                 actionIdx++;
             }
@@ -131,10 +142,15 @@ public class TraversingEvaluator {
             }
         };
 
-        DeepstackPlayer currentPlayer = PlayerHelpers.selectByPlayerId(s.getActingPlayerId(), pl1, pl2);
-        currentPlayer.registerResolvingListener(stratAggregator);
-        ISubgameResolver.ActResult actResult = currentPlayer.computeStrategy(timeoutMs);
-        currentPlayer.unregisterResolvingListener(stratAggregator);
+        ActCacheEntry cacheEntry = actCache.computeIfAbsent(s.getInfoSetForActingPlayer(), k -> {
+            DeepstackPlayer currentPlayer = PlayerHelpers.selectByPlayerId(s.getActingPlayerId(), pl1, pl2);
+            currentPlayer.registerResolvingListener(stratAggregator);
+            ISubgameResolver.ActResult res = currentPlayer.computeStrategy(timeoutMs);
+            currentPlayer.unregisterResolvingListener(stratAggregator);
+            return new ActCacheEntry(res, currentPlayer);
+        });
+
+        ISubgameResolver.ActResult actResult = cacheEntry.actResult;
 
         int actionIdx = 0;
         for (IAction a: legalActions) {
@@ -142,10 +158,10 @@ public class TraversingEvaluator {
             double nrp1 = reachProb1, nrp2 = reachProb2;
             DeepstackPlayer npl1 = pl1, npl2 = pl2;
             if (s.getActingPlayerId() == 1) {
-                npl1 = npl1.getNewPlayerByAction(a, actResult);
+                npl1 = cacheEntry.playerWithComputedStrat.getNewPlayerByAction(a, actResult);
                 nrp1 *= actionProb;
             } else if (s.getActingPlayerId() == 2) {
-                npl2 = npl2.getNewPlayerByAction(a, actResult);
+                npl2 = cacheEntry.playerWithComputedStrat.getNewPlayerByAction(a, actResult);
                 nrp2 *= actionProb;
             }
             Iterable<IPercept> percepts = s.getPercepts(a);
@@ -154,7 +170,7 @@ public class TraversingEvaluator {
             npl1 = ensureDifference(pl1, npl1);
             npl2 = ensureDifference(pl2, npl2);
             printAction(actionIdx, legalActions.size());
-            aggregateStrategy(entries, s.next(a), npl1, npl2, nrp1, nrp2, depth + 1);
+            aggregateStrategy(actCache, entries, s.next(a), npl1, npl2, nrp1, nrp2, depth + 1);
             unprintAction(actionIdx, legalActions.size());
             actionIdx++;
         }
@@ -175,7 +191,8 @@ public class TraversingEvaluator {
         for (int i = 0; i < logPointsMs.size(); ++i) {
             entries.add(new EvaluatorEntry(logPointsMs.get(i)));
         }
-        aggregateStrategy(entries, initialState, pl1, pl2, 1d, 1d, 0);
+        HashMap<IInformationSet, ActCacheEntry> actCache = new HashMap<>();
+        aggregateStrategy(actCache, entries, initialState, pl1, pl2, 1d, 1d, 0);
         for (EvaluatorEntry entry: entries) {
             entry.getAggregatedStrat().normalize();
         }
