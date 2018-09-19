@@ -173,19 +173,37 @@
 
 - 加入时间维度
 
-  > 因为三维不能很好的可视化，展示成两个二位坐标　
+  > 因为三维不能很好的可视化，展示成两个二维坐标，分别是ｓ随时间的变化和ｄ随时间的变化。
 
   ![](imgs/11.png)
 
-- 结构化轨迹生成预览（固定环境）
+- 结构化轨迹生成预览
+
+  > 该方法适用于固定环境，比如高速路
 
   ![](imgs/12.png)
 
+- 如果确定了起点和终点去规划路径，像下图这样是不可取的，因为在拐点的变化很大，需要很大加速度才可以
+
+  这样乘客会感受到很不舒适，所以规划出的路线需要是平滑的、连续的。
+
+  ![](imgs/18.png)
+
 - 什么情况下会让乘客感觉到不舒服
 
-  > 答案是颠簸（加速度的变化）通过求得加速度的导数求得颠簸的大小。
+  > 答案是颠簸（加速度忽快忽慢不停的变化，车辆时快时慢，会让乘客感受到很不舒服）通过求得加速度的导数求得颠簸的大小。
+  >
+  > 位移－>速度－>加速度－>急刹车－>急停－>急转->跳跃
 
   ![](imgs/13.png)
+
+- 最小化一维情况下的的Jerk路径
+
+  ![](imgs/19.png)
+
+  > 上图的6个参数其实就是６个边界条件，这六个条件为位移，速度，加速度
+
+  ![](imgs/20.png)
 
 - 导数概览
 
@@ -195,4 +213,137 @@
   >
   > https://blog.csdn.net/adamshan/article/details/80779615
 
-- ​
+- 测试
+
+  ```C
+  #include <iostream>
+  #include <fstream>
+  #include <cmath>
+  #include <vector>
+
+  #include "Dense"
+
+  using namespace std;
+  using Eigen::MatrixXd;
+  using Eigen::VectorXd;
+
+  // TODO - complete this function
+  vector<double> JMT(vector< double> start, vector <double> end, double T)
+  {
+      /*
+      Calculate the Jerk Minimizing Trajectory that connects the initial state
+      to the final state in time T.
+
+      INPUTS
+
+      start - the vehicles start location given as a length three array
+          corresponding to initial values of [s, s_dot, s_double_dot]
+
+      end   - the desired end state for vehicle. Like "start" this is a
+          length three array.
+
+      T     - The duration, in seconds, over which this maneuver should occur.
+
+      OUTPUT 
+      an array of length 6, each value corresponding to a coefficent in the polynomial 
+      s(t) = a_0 + a_1 * t + a_2 * t**2 + a_3 * t**3 + a_4 * t**4 + a_5 * t**5
+
+      EXAMPLE
+
+      > JMT( [0, 10, 0], [10, 10, 0], 1)
+      [0.0, 10.0, 0.0, 0.0, 0.0, 0.0]
+      */
+      return {1,2,3,4,5,6};
+      
+  }
+
+  bool close_enough(vector< double > poly, vector<double> target_poly, double eps=0.01) {
+
+
+  	if(poly.size() != target_poly.size())
+  	{
+  		cout << "your solution didn't have the correct number of terms" << endl;
+  		return false;
+  	}
+  	for(int i = 0; i < poly.size(); i++)
+  	{
+  		double diff = poly[i]-target_poly[i];
+  		if(abs(diff) > eps)
+  		{
+  			cout << "at least one of your terms differed from target by more than " << eps << endl;
+  			return false;
+  		}
+
+  	}
+  	return true;
+  }
+  	
+  struct test_case {
+  	
+  		vector<double> start;
+  		vector<double> end;
+  		double T;
+  };
+
+  vector< vector<double> > answers = {{0.0, 10.0, 0.0, 0.0, 0.0, 0.0},{0.0,10.0,0.0,0.0,-0.625,0.3125},{5.0,10.0,1.0,-3.0,0.64,-0.0432}};
+
+  int main() {
+
+  	//create test cases
+
+  	vector< test_case > tc;
+
+  	test_case tc1;
+  	tc1.start = {0,10,0};
+  	tc1.end = {10,10,0};
+  	tc1.T = 1;
+  	tc.push_back(tc1);
+
+  	test_case tc2;
+  	tc2.start = {0,10,0};
+  	tc2.end = {20,15,20};
+  	tc2.T = 2;
+  	tc.push_back(tc2);
+
+  	test_case tc3;
+  	tc3.start = {5,10,2};
+  	tc3.end = {-30,-20,-4};
+  	tc3.T = 5;
+  	tc.push_back(tc3);
+
+  	bool total_correct = true;
+  	for(int i = 0; i < tc.size(); i++)
+  	{
+  		vector< double > jmt = JMT(tc[i].start, tc[i].end, tc[i].T);
+  		bool correct = close_enough(jmt,answers[i]);
+  		total_correct &= correct;
+
+  	}
+  	if(!total_correct)
+  	{
+  		cout << "Try again!" << endl;
+  	}
+  	else
+  	{
+  		cout << "Nice work!" << endl;
+  	}
+
+  	return 0;
+  }
+  ```
+
+- 一条潜在可行的路径可能需要考虑的问题
+
+  ![](imgs/21.png)
+
+- 可行性实现
+
+  ![](imgs/22.png)
+
+  ​
+
+- 因为算法每次会生成多条轨迹，需要从其中找出最好的一条轨迹，需要考虑的损失有。
+
+  ![](imgs/23.png)
+
+  ​
