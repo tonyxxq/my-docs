@@ -16,7 +16,7 @@ import java.util.List;
  * Evaluates Deepstack configuration by playing number of games against random opponent, while aggregating computed strategies
  * at encountered decision points.
  */
-public class GamePlayingEvaluator {
+public class GamePlayingEvaluator implements IDeepstackEvaluator {
     private int initMs;
     private int timeoutMs;
     StrategyAggregatorListener stratAggregator;
@@ -35,12 +35,7 @@ public class GamePlayingEvaluator {
         this.gameCount = gameCount;
     }
 
-    /**
-     * Evaluates given Deepstack configuration in given game.
-     * @param gameDesc
-     * @param subgameResolverFactory
-     * @return ASC ordered list of entries containing times and corresponding normalized aggregated strategies.
-     */
+    @Override
     public List<EvaluatorEntry> evaluate(IGameDescription gameDesc, ISubgameResolver.Factory subgameResolverFactory) {
         IPlayerFactory deepstack = new DeepstackPlayer.Factory(subgameResolverFactory, stratAggregator);
         IPlayerFactory random = new RandomPlayer.Factory();
@@ -64,5 +59,13 @@ public class GamePlayingEvaluator {
             entry.getAggregatedStrat().normalize();
         }
         return stratAggregator.getEntries();
+    }
+
+    @Override
+    public String getConfigString() {
+        return "Gameplay{" +
+                "init=" + initMs +
+                ", count=" + gameCount +
+                '}';
     }
 }

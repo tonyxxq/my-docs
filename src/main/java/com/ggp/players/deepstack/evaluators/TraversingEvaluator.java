@@ -18,7 +18,7 @@ import java.util.List;
  * Evaluates Deepstack configuration by traversing the game tree and computing strategy at each decision point,
  * while aggregating the resulting strategies at given time intervals.
  */
-public class TraversingEvaluator {
+public class TraversingEvaluator implements IDeepstackEvaluator {
     private int initMs;
     private int timeoutMs;
     private ArrayList<Integer> logPointsMs;
@@ -176,13 +176,9 @@ public class TraversingEvaluator {
         }
     }
 
-    /**
-     * Evaluates given Deepstack configuration on given game.
-     * @param gameDesc
-     * @param playerFactory
-     * @return ASC ordered list of entries containing times and corresponding normalized aggregated strategies.
-     */
-    public List<EvaluatorEntry> evaluate(IGameDescription gameDesc, DeepstackPlayer.Factory playerFactory) {
+    @Override
+    public List<EvaluatorEntry> evaluate(IGameDescription gameDesc, ISubgameResolver.Factory subgameResolverFactory) {
+        DeepstackPlayer.Factory playerFactory = new DeepstackPlayer.Factory(subgameResolverFactory, null);
         ICompleteInformationState initialState = gameDesc.getInitialState();
         DeepstackPlayer pl1 = playerFactory.create(gameDesc, 1), pl2 = playerFactory.create(gameDesc, 2);
         pl1.init(initMs);
@@ -197,5 +193,12 @@ public class TraversingEvaluator {
             entry.getAggregatedStrat().normalize();
         }
         return entries;
+    }
+
+    @Override
+    public String getConfigString() {
+        return "Traversing{" +
+                "init=" + initMs +
+                '}';
     }
 }
