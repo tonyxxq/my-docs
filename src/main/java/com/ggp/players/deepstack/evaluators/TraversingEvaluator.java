@@ -20,16 +20,19 @@ import java.util.List;
  */
 public class TraversingEvaluator implements IDeepstackEvaluator {
     private int initMs;
+    private int count;
     private int timeoutMs;
     private ArrayList<Integer> logPointsMs;
 
     /**
      * Constructor
      * @param initMs timeout for deepstack initialization
+     * @param count how many times to traverse the game tree
      * @param logPointsMs ASC ordered list of times when strategies should be aggregated
      */
-    public TraversingEvaluator(int initMs, List<Integer> logPointsMs) {
+    public TraversingEvaluator(int initMs, int count, List<Integer> logPointsMs) {
         this.initMs = initMs;
+        this.count = count;
         this.timeoutMs = logPointsMs.get(logPointsMs.size() - 1);
         this.logPointsMs = new ArrayList<>(logPointsMs);
     }
@@ -187,8 +190,11 @@ public class TraversingEvaluator implements IDeepstackEvaluator {
         for (int i = 0; i < logPointsMs.size(); ++i) {
             entries.add(new EvaluatorEntry(logPointsMs.get(i)));
         }
-        HashMap<IInformationSet, ActCacheEntry> actCache = new HashMap<>();
-        aggregateStrategy(actCache, entries, initialState, pl1, pl2, 1d, 1d, 0);
+        for (int i  = 0; i < count; ++i) {
+            HashMap<IInformationSet, ActCacheEntry> actCache = new HashMap<>();
+            aggregateStrategy(actCache, entries, initialState, pl1, pl2, 1d, 1d, 0);
+        }
+
         for (EvaluatorEntry entry: entries) {
             entry.getAggregatedStrat().normalize();
         }
@@ -198,7 +204,8 @@ public class TraversingEvaluator implements IDeepstackEvaluator {
     @Override
     public String getConfigString() {
         return "Traversing{" +
-                "init=" + initMs +
+                "i=" + initMs +
+                ",c=" + count +
                 '}';
     }
 }
