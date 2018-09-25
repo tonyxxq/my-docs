@@ -17,19 +17,21 @@ public class RandomPlayoutUtilityEstimator implements IUtilityEstimator {
             return new EstimatorResult(s.getPayoff(1), s.getPayoff(2));
         }
         double u1 = 0, u2 = 0;
+        double totalProb = 0;
         for (int i = 0; i < iters; ++i) {
             ICompleteInformationState ws = s;
             double prob = 1;
             while (!ws.isTerminal()) {
                 List<IAction> legalActions = ws.getLegalActions();
-                prob *= 1/legalActions.size();
+                prob *= 1d/legalActions.size();
                 IAction a = rnd.select(legalActions);
                 ws = ws.next(a);
             }
             u1 += prob*ws.getPayoff(1);
             u2 += prob*ws.getPayoff(2);
+            totalProb += prob;
         }
-        return new EstimatorResult(u1/iters, u2/iters);
+        return new EstimatorResult(u1/totalProb, u2/totalProb);
     }
 
     @Override
