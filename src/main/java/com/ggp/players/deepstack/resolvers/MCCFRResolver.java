@@ -29,9 +29,9 @@ public class MCCFRResolver extends BaseCFRResolver implements ISubgameResolver {
         @Override
         public String getConfigString() {
             return "MC-CFR{" +
-                    ", targetingProb=" + targetingProb +
-                    ", explorationProb=" + explorationProb +
-                    ", regretMatching=" + regretMatching.getConfigString() +
+                    ", t=" + targetingProb +
+                    ", e=" + explorationProb +
+                    ", rm=" + regretMatching.getConfigString() +
                     '}';
         }
     }
