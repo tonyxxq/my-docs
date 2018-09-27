@@ -1,9 +1,6 @@
 package com.ggp.players.deepstack.resolvers;
 
-import com.ggp.IAction;
-import com.ggp.ICompleteInformationState;
-import com.ggp.ICompleteInformationStateFactory;
-import com.ggp.IInformationSet;
+import com.ggp.*;
 import com.ggp.players.deepstack.IRegretMatching;
 import com.ggp.players.deepstack.IResolvingListener;
 import com.ggp.players.deepstack.ISubgameResolver;
@@ -77,9 +74,15 @@ public class MCCFRResolver extends BaseCFRResolver implements ISubgameResolver {
         List<IAction> legalActions = s.getLegalActions();
         if (legalActions == null || legalActions.isEmpty()) return null;
         double sample = rng.nextDouble();
-        double actionProb = 1d/legalActions.size();
-        int actionIdx = (int)(sample*legalActions.size());
-        return new SampleResult(legalActions.get(actionIdx), actionProb, actionProb);
+        IRandomNode rndNode = s.getRandomNode();
+        for (IRandomNode.IRandomNodeAction rndAction: rndNode) {
+            double actionProb = rndAction.getProb();
+            if (sample < actionProb) {
+                return new SampleResult(rndAction.getAction(), actionProb, actionProb);
+            }
+            sample -= actionProb;
+        }
+        return null;
     }
 
     private SampleResult samplePlayerAction(ICompleteInformationState s, IInformationSet is, int player) {
@@ -106,7 +109,15 @@ public class MCCFRResolver extends BaseCFRResolver implements ISubgameResolver {
     private CFRResult playout(ICompleteInformationState s, double prefixProb, int player) {
         double suffixProb = 1;
         while (!s.isTerminal()) {
-            SampleResult res = sampleRandom(s);
+            SampleResult res;
+            if (s.isRandomNode()) {
+                res = sampleRandom(s);
+            } else {
+                List<IAction> legalActions = s.getLegalActions();
+                res = new SampleResult(legalActions.get((int)(rng.nextDouble() * legalActions.size())),
+                        1d/legalActions.size(), 1d/legalActions.size());
+            }
+
             suffixProb *= res.untargetedProb;
             s = s.next(res.action);
         }

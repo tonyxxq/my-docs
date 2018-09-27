@@ -1,14 +1,12 @@
 package com.ggp.games.LeducPoker;
 
-import com.ggp.IAction;
-import com.ggp.ICompleteInformationState;
-import com.ggp.IInformationSet;
-import com.ggp.IPercept;
+import com.ggp.*;
 import com.ggp.games.LeducPoker.actions.CallAction;
 import com.ggp.games.LeducPoker.actions.DealCardAction;
 import com.ggp.games.LeducPoker.actions.FoldAction;
 import com.ggp.games.LeducPoker.actions.RaiseAction;
 import com.ggp.games.LeducPoker.percepts.*;
+import com.ggp.utils.UniformRandomNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -206,5 +204,11 @@ public class CompleteInformationState implements ICompleteInformationState {
     @Override
     public int hashCode() {
         return Objects.hash(player1IS, player2IS, actingPlayer);
+    }
+
+    @Override
+    public IRandomNode getRandomNode() {
+        if (!isRandomNode()) return null;
+        return new UniformRandomNode(getLegalActions());
     }
 }

@@ -80,11 +80,14 @@ public class TraversingEvaluator implements IDeepstackEvaluator {
 
     private void aggregateStrategy(HashMap<IInformationSet, ActCacheEntry> actCache, List<EvaluatorEntry> entries, ICompleteInformationState s, DeepstackPlayer pl1, DeepstackPlayer pl2, double reachProb1, double reachProb2, int depth) {
         if (s.isTerminal()) return;
+
         List<IAction> legalActions = s.getLegalActions();
         if (s.isRandomNode()) {
-            double actionProb = 1d/legalActions.size();
+            IRandomNode rndNode = s.getRandomNode();
             int actionIdx = 0;
-            for (IAction a: legalActions) {
+            for (IRandomNode.IRandomNodeAction rndAction: rndNode) {
+                IAction a = rndAction.getAction();
+                double actionProb = rndAction.getProb();
                 Iterable<IPercept> percepts = s.getPercepts(a);
                 DeepstackPlayer npl1 = applyPercepts(pl1, 1, percepts), npl2 = applyPercepts(pl2, 2, percepts);
                 npl1 = ensureDifference(pl1, npl1);

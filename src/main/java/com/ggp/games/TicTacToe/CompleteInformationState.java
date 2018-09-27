@@ -1,9 +1,6 @@
 package com.ggp.games.TicTacToe;
 
-import com.ggp.IAction;
-import com.ggp.ICompleteInformationState;
-import com.ggp.IInformationSet;
-import com.ggp.IPercept;
+import com.ggp.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -116,5 +113,10 @@ public class CompleteInformationState implements ICompleteInformationState {
     public InformationSet getInfoSetForPlayer(int role) {
         if (role == PLAYER_X) return xInfoSet;
         return oInfoSet;
+    }
+
+    @Override
+    public IRandomNode getRandomNode() {
+        return null;
     }
 }

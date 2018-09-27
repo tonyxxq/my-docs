@@ -1,9 +1,6 @@
 package com.ggp.players.deepstack.resolvers;
 
-import com.ggp.IAction;
-import com.ggp.ICompleteInformationState;
-import com.ggp.ICompleteInformationStateFactory;
-import com.ggp.IInformationSet;
+import com.ggp.*;
 import com.ggp.players.deepstack.*;
 import com.ggp.players.deepstack.regret_matching.RegretMatching;
 import com.ggp.players.deepstack.regret_matching.RegretMatchingPlus;
@@ -97,15 +94,15 @@ public class CFRResolver extends BaseCFRResolver implements ISubgameResolver {
         };
 
         if (s.isRandomNode()) {
+            IRandomNode rndNode = s.getRandomNode();
             CFRResult ret = new CFRResult(0,0);
-            for (IAction a: legalActions) {
+            for (IRandomNode.IRandomNodeAction rndAction: rndNode) {
+                IAction a = rndAction.getAction();
+                double actionProb = rndAction.getProb();
                 CFRResult res =  callCfr.apply(s, a);
-                ret.player1Utility += res.player1Utility;
-                ret.player2Utility += res.player2Utility;
+                ret.player1Utility += actionProb * res.player1Utility;
+                ret.player2Utility += actionProb * res.player2Utility;
             }
-            // uniform probability for each action -> average
-            ret.player1Utility /= legalActions.size();
-            ret.player2Utility /= legalActions.size();
             return ret;
         }
 

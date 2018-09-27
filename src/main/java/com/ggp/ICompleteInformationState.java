@@ -54,6 +54,12 @@ public interface ICompleteInformationState {
     Iterable<IPercept> getPercepts(IAction a);
 
     /**
+     * Get random node
+     * @return random node or null if this node is not random
+     */
+    IRandomNode getRandomNode();
+
+    /**
      * Checks whether given action is legal
      * @param a
      * @return

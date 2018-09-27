@@ -87,7 +87,7 @@ public class GameTreeTraversalTracker {
         double newRndProb = rndProb;
         int opponentId = PlayerHelpers.getOpponentId(myId);
         if (state.isRandomNode()) {
-            newRndProb *= 1d/ state.getLegalActions().size();
+            newRndProb *= state.getRandomNode().getActionProb(a);
         }
         if (trackingState == TrackingState.END) {
             return new GameTreeTraversalTracker(myId, null, null, newRndProb, myTopAction, nextTrackingState, nextState, null, null, null, null, null, null);

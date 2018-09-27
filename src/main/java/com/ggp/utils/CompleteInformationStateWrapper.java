@@ -1,9 +1,6 @@
 package com.ggp.utils;
 
-import com.ggp.IAction;
-import com.ggp.ICompleteInformationState;
-import com.ggp.IInformationSet;
-import com.ggp.IPercept;
+import com.ggp.*;
 
 import java.util.List;
 
@@ -53,6 +50,11 @@ public abstract class CompleteInformationStateWrapper implements ICompleteInform
     @Override
     public boolean isLegal(IAction a) {
         return state.isLegal(a);
+    }
+
+    @Override
+    public IRandomNode getRandomNode() {
+        return state.getRandomNode();
     }
 
     public ICompleteInformationState getOrigState() {

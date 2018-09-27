@@ -40,7 +40,8 @@ public class GameManager {
         int turn = state.getActingPlayerId();
         if (currentForcedAction == null) {
             if (state.isRandomNode()) {
-                a = randomActionSelector.select(state.getLegalActions());
+                IRandomNode rndNode = state.getRandomNode();
+                a = randomActionSelector.select(state.getLegalActions(), action -> rndNode.getActionProb(action));
             } else {
                 a = PlayerHelpers.callWithSelectedParam(turn, player1, player2, p -> p.act(actTimeoutMillis));
                 if (!state.isLegal(a)) {

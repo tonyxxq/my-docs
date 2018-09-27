@@ -2,6 +2,7 @@ package com.ggp.players.deepstack.estimators;
 
 import com.ggp.IAction;
 import com.ggp.ICompleteInformationState;
+import com.ggp.IRandomNode;
 import com.ggp.players.deepstack.IUtilityEstimator;
 import com.ggp.players.deepstack.utils.Strategy;
 import com.ggp.utils.RandomItemSelector;
@@ -23,8 +24,16 @@ public class RandomPlayoutUtilityEstimator implements IUtilityEstimator {
             double prob = 1;
             while (!ws.isTerminal()) {
                 List<IAction> legalActions = ws.getLegalActions();
-                prob *= 1d/legalActions.size();
-                IAction a = rnd.select(legalActions);
+                IAction a;
+                if (ws.isRandomNode()) {
+                    IRandomNode rndNode = ws.getRandomNode();
+                    a = rnd.select(legalActions, action -> rndNode.getActionProb(action));
+                    prob *= rndNode.getActionProb(a);
+                } else {
+                    prob *= 1d/legalActions.size();
+                    a = rnd.select(legalActions);
+                }
+
                 ws = ws.next(a);
             }
             u1 += prob*ws.getPayoff(1);

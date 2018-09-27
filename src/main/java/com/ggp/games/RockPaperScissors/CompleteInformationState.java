@@ -1,9 +1,6 @@
 package com.ggp.games.RockPaperScissors;
 
-import com.ggp.IAction;
-import com.ggp.ICompleteInformationState;
-import com.ggp.IInformationSet;
-import com.ggp.IPercept;
+import com.ggp.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -87,5 +84,10 @@ public class CompleteInformationState implements ICompleteInformationState {
     @Override
     public int hashCode() {
         return Objects.hash(player1IS, player2IS);
+    }
+
+    @Override
+    public IRandomNode getRandomNode() {
+        return null;
     }
 }
