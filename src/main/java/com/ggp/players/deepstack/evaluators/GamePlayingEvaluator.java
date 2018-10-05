@@ -46,6 +46,7 @@ public class GamePlayingEvaluator implements IDeepstackEvaluator {
                 pl1 = random;
                 pl2 = deepstack;
             }
+            stratAggregator.reinit();
             GameManager manager = new GameManager(pl1, pl2, gameDesc);
             manager.run(initMs, timeoutMs);
             List<EvaluatorEntry> entries = stratAggregator.getEntries();

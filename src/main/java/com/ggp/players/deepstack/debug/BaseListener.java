@@ -31,4 +31,8 @@ public class BaseListener implements IResolvingListener {
     @Override
     public void resolvingIterationEnd(IResolvingInfo resInfo) {
     }
+
+    public void reinit() {
+        initEnded = false;
+    }
 }

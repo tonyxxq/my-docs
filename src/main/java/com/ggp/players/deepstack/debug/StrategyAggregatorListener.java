@@ -44,12 +44,14 @@ public class StrategyAggregatorListener extends BaseListener {
 
     @Override
     public void resolvingEnd(IResolvingInfo resInfo) {
+        if (!hasInitEnded()) return;
         strategyIdx = logPointsMs.size() - 1;
         mergeStrategy(resInfo);
     }
 
     @Override
     public void resolvingIterationEnd(IResolvingInfo resInfo) {
+        if (!hasInitEnded()) return;
         if (strategyIdx >= logPointsMs.size() - 1) return;
         int counter = timedCounter.tryIncrement();
         if (strategyIdx != counter) {
