@@ -126,7 +126,7 @@ public class TraversingEvaluator implements IDeepstackEvaluator {
                     final double finNorm = norm;
                     target.addProbabilities(is, a -> playerReachProb * strat.getProbability(is, a) / finNorm);
                 } else {
-                    target.addProbabilities(is, a -> playerReachProb * legalActions.size());
+                    target.addProbabilities(is, a -> playerReachProb / legalActions.size());
                 }
             }
 
