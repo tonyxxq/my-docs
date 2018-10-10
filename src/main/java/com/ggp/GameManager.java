@@ -1,7 +1,7 @@
 package com.ggp;
 
 import com.ggp.utils.PlayerHelpers;
-import com.ggp.utils.RandomItemSelector;
+import com.ggp.utils.random.RandomSampler;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -10,7 +10,7 @@ public class GameManager {
     private IPlayer player1;
     private IPlayer player2;
     private ICompleteInformationState state;
-    private RandomItemSelector<IAction> randomActionSelector = new RandomItemSelector<>();
+    private RandomSampler randomActionSelector = new RandomSampler();
     private ArrayList<IGameListener> gameListeners = new ArrayList<>();
 
     public GameManager(IPlayerFactory playerFactory1, IPlayerFactory playerFactory2, IGameDescription game) {
@@ -41,7 +41,7 @@ public class GameManager {
         if (currentForcedAction == null) {
             if (state.isRandomNode()) {
                 IRandomNode rndNode = state.getRandomNode();
-                a = randomActionSelector.select(state.getLegalActions(), action -> rndNode.getActionProb(action));
+                a = randomActionSelector.select(state.getLegalActions(), action -> rndNode.getActionProb(action)).getResult();
             } else {
                 a = PlayerHelpers.callWithSelectedParam(turn, player1, player2, p -> p.act(actTimeoutMillis));
                 if (!state.isLegal(a)) {

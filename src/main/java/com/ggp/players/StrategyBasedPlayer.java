@@ -1,6 +1,8 @@
 package com.ggp.players;
 
 import com.ggp.*;
+import com.ggp.utils.PlayerHelpers;
+import com.ggp.utils.random.RandomSampler;
 
 public class StrategyBasedPlayer implements IPlayer {
     public static class Factory implements IPlayerFactory {
@@ -19,6 +21,7 @@ public class StrategyBasedPlayer implements IPlayer {
     private int myId;
     private IInformationSet hiddenInfo;
     private IStrategy strategy;
+    private RandomSampler sampler = new RandomSampler();
 
     public StrategyBasedPlayer(int myId, IGameDescription gameDesc, IStrategy strategy) {
         this.myId = myId;
@@ -32,7 +35,7 @@ public class StrategyBasedPlayer implements IPlayer {
 
     @Override
     public IAction act(long timeoutMillis) {
-        IAction a = strategy.sampleAction(hiddenInfo);
+        IAction a = PlayerHelpers.sampleAction(sampler, hiddenInfo, strategy);
         hiddenInfo = hiddenInfo.next(a);
         return a;
     }

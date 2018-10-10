@@ -27,14 +27,6 @@ public class Strategy implements IStrategy {
         return sStrategy;
     }
 
-    private double getActionProbability(HashMap<IAction, Double> sStrategy, IAction a, double def) {
-        if (sStrategy == null) {
-            return def;
-        } else {
-            return sStrategy.getOrDefault(a, 0d);
-        }
-    }
-
     @Override
     public double getProbability(IInformationSet s, IAction a) {
         if (!s.isLegal(a)) return 0;
@@ -44,30 +36,6 @@ public class Strategy implements IStrategy {
         } else {
             return sStrategy.getOrDefault(a, 0d);
         }
-    }
-
-    @Override
-    public IAction sampleAction(IInformationSet s) {
-        double t = rng.nextDouble();
-        double sum = 0;
-        List<IAction> legalActions = s.getLegalActions();
-        if (legalActions.isEmpty()) return null;
-        HashMap<IAction, Double> sStrategy = getSetStragety(s);
-        double def = 1.0/legalActions.size();
-        double maxProb = 0;
-        IAction maxAction = null;
-        for(IAction a: legalActions) {
-            double prob = getActionProbability(sStrategy, a, def);
-            if (prob > maxProb) {
-                maxAction = a;
-                maxProb = prob;
-            }
-            sum += prob;
-            if (t <= sum) {
-                return a;
-            }
-        }
-        return maxAction; // in case there are some floating-point errors
     }
 
     /**

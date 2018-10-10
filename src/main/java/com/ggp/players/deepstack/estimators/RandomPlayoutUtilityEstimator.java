@@ -4,14 +4,13 @@ import com.ggp.IAction;
 import com.ggp.ICompleteInformationState;
 import com.ggp.IRandomNode;
 import com.ggp.players.deepstack.IUtilityEstimator;
-import com.ggp.players.deepstack.utils.Strategy;
-import com.ggp.utils.RandomItemSelector;
+import com.ggp.utils.random.RandomSampler;
 
 import java.util.List;
 
 public class RandomPlayoutUtilityEstimator implements IUtilityEstimator {
     private int iters = 5;
-    private RandomItemSelector<IAction> rnd = new RandomItemSelector<>();
+    private RandomSampler rnd = new RandomSampler();
     @Override
     public EstimatorResult estimate(ICompleteInformationState s) {
         if (s.isTerminal()) {
@@ -27,7 +26,7 @@ public class RandomPlayoutUtilityEstimator implements IUtilityEstimator {
                 IAction a;
                 if (ws.isRandomNode()) {
                     IRandomNode rndNode = ws.getRandomNode();
-                    a = rnd.select(legalActions, action -> rndNode.getActionProb(action));
+                    a = rnd.select(legalActions, action -> rndNode.getActionProb(action)).getResult();
                     prob *= rndNode.getActionProb(a);
                 } else {
                     prob *= 1d/legalActions.size();

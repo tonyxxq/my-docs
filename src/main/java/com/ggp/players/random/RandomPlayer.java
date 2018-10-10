@@ -1,7 +1,7 @@
 package com.ggp.players.random;
 
 import com.ggp.*;
-import com.ggp.utils.RandomItemSelector;
+import com.ggp.utils.random.RandomSampler;
 
 public class RandomPlayer implements IPlayer {
     public static class Factory implements IPlayerFactory {
@@ -13,7 +13,7 @@ public class RandomPlayer implements IPlayer {
 
     private IInformationSet infoSet;
     private int role;
-    RandomItemSelector<IAction> randomActionSelector = new RandomItemSelector<>();
+    RandomSampler randomActionSelector = new RandomSampler();
 
     public RandomPlayer(IInformationSet infoSet, int role) {
         this.infoSet = infoSet;

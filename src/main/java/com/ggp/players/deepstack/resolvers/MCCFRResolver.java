@@ -9,6 +9,7 @@ import com.ggp.players.deepstack.trackers.GameTreeTraversalTracker;
 import com.ggp.players.deepstack.utils.InformationSetRange;
 import com.ggp.players.deepstack.utils.IterationTimer;
 import com.ggp.players.deepstack.utils.Strategy;
+import com.ggp.utils.random.RandomSampler;
 
 import java.util.*;
 
@@ -36,7 +37,7 @@ public class MCCFRResolver extends BaseCFRResolver implements ISubgameResolver {
     private Strategy strat = new Strategy();
     private double targetingProb;
     private double explorationProb;
-    private Random rng = new Random();
+    private RandomSampler sampler = new RandomSampler();
 
     public MCCFRResolver(int myId, IInformationSet hiddenInfo, InformationSetRange range, HashMap<IInformationSet, Double> opponentCFV,
                          List<IResolvingListener> resolvingListeners, IRegretMatching regretMatching,
@@ -72,38 +73,22 @@ public class MCCFRResolver extends BaseCFRResolver implements ISubgameResolver {
 
     private SampleResult sampleRandom(ICompleteInformationState s) {
         List<IAction> legalActions = s.getLegalActions();
-        if (legalActions == null || legalActions.isEmpty()) return null;
-        double sample = rng.nextDouble();
         IRandomNode rndNode = s.getRandomNode();
-        for (IRandomNode.IRandomNodeAction rndAction: rndNode) {
-            double actionProb = rndAction.getProb();
-            if (sample < actionProb) {
-                return new SampleResult(rndAction.getAction(), actionProb, actionProb);
-            }
-            sample -= actionProb;
-        }
-        return null;
+        RandomSampler.SampleResult<IAction> res = sampler.select(legalActions, a -> rndNode.getActionProb(a));
+        return new SampleResult(res.getResult(), res.getSampleProb(), res.getSampleProb());
     }
 
     private SampleResult samplePlayerAction(ICompleteInformationState s, IInformationSet is, int player) {
         List<IAction> legalActions = is.getLegalActions();
-        if (legalActions == null || legalActions.isEmpty()) return null;
         double unifPart = explorationProb * 1d/legalActions.size();
-        double sample = rng.nextDouble();
         int actingPlayer = s.getActingPlayerId();
-        for (IAction a: legalActions) {
-            double actionProb;
-            if (actingPlayer == player) {
-                actionProb = unifPart + (1-explorationProb) * strat.getProbability(is, a);
-            } else {
-                actionProb = strat.getProbability(is, a);
-            }
-            sample -= actionProb;
-            if (sample <= 0) {
-                return new SampleResult(a, actionProb, actionProb);
-            }
+        RandomSampler.SampleResult<IAction> res;
+        if (actingPlayer == player) {
+            res = sampler.select(legalActions, a -> unifPart + (1-explorationProb) * strat.getProbability(is, a));
+        } else {
+            res = sampler.select(legalActions, a -> strat.getProbability(is, a));
         }
-        return null;
+        return new SampleResult(res.getResult(), res.getSampleProb(), res.getSampleProb());
     }
 
     private CFRResult playout(ICompleteInformationState s, double prefixProb, int player) {
@@ -114,7 +99,7 @@ public class MCCFRResolver extends BaseCFRResolver implements ISubgameResolver {
                 res = sampleRandom(s);
             } else {
                 List<IAction> legalActions = s.getLegalActions();
-                res = new SampleResult(legalActions.get((int)(rng.nextDouble() * legalActions.size())),
+                res = new SampleResult(sampler.select(legalActions),
                         1d/legalActions.size(), 1d/legalActions.size());
             }
 
@@ -209,17 +194,9 @@ public class MCCFRResolver extends BaseCFRResolver implements ISubgameResolver {
     }
 
     private SubgameSample sampleSubgame() {
-        double sample = rng.nextDouble();
         double norm = range.getNorm();
-        for (Map.Entry<ICompleteInformationState, Double> stateProb: range.getProbabilities()) {
-            double prob = stateProb.getValue()/norm;
-            if (sample < prob) {
-                // use denormalized probability to avoid denormalizing terminal utilities
-                return new SubgameSample(stateProb.getKey(), stateProb.getValue(), stateProb.getValue());
-            }
-            sample -= prob;
-        }
-        return null;
+        RandomSampler.SampleResult<ICompleteInformationState> res = sampler.select(range.getPossibleStates(), s -> range.getProbability(s)/norm);
+        return new SubgameSample(res.getResult(), res.getSampleProb() * norm, res.getSampleProb() * norm);
     }
 
     @Override

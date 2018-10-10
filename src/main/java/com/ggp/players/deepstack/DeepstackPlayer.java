@@ -4,6 +4,7 @@ import com.ggp.*;
 import com.ggp.players.deepstack.debug.RPSListener;
 import com.ggp.players.deepstack.utils.*;
 import com.ggp.utils.PlayerHelpers;
+import com.ggp.utils.random.RandomSampler;
 
 import java.util.*;
 
@@ -41,6 +42,7 @@ public class DeepstackPlayer implements IPlayer {
     private ArrayList<IResolvingListener> resolvingListeners = new ArrayList<>();
     private ISubgameResolver.Factory resolverFactory;
     private double opponentCFVNorm = 1;
+    private RandomSampler sampler = new RandomSampler();
 
     private DeepstackPlayer(int id, InformationSetRange range, IInformationSet hiddenInfo,
                             ICompleteInformationStateFactory cisFactory,
@@ -150,7 +152,7 @@ public class DeepstackPlayer implements IPlayer {
 
         IAction selectedAction;
         if (forcedAction == null) {
-            selectedAction = res.cumulativeStrategy.sampleAction(hiddenInfo);
+            selectedAction = PlayerHelpers.sampleAction(sampler, hiddenInfo, res.cumulativeStrategy);
         } else {
             selectedAction = forcedAction;
         }

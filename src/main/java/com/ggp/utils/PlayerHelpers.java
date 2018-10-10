@@ -1,5 +1,10 @@
 package com.ggp.utils;
 
+import com.ggp.IAction;
+import com.ggp.IInformationSet;
+import com.ggp.IStrategy;
+import com.ggp.utils.random.RandomSampler;
+
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -81,5 +86,9 @@ public class PlayerHelpers {
      */
     public static <T> void callWithSelectedParamVoid(int id, T player1Param, T player2Param, Consumer<T> fn) {
         fn.accept(selectByPlayerId(id, player1Param, player2Param));
+    }
+
+    public static IAction sampleAction(RandomSampler sampler, IInformationSet is, IStrategy strategy) {
+        return sampler.select(is.getLegalActions(), action -> strategy.getProbability(is, action)).getResult();
     }
 }
