@@ -2,9 +2,8 @@ package com.ggp.players.deepstack.resolvers;
 
 import com.ggp.*;
 import com.ggp.players.deepstack.*;
-import com.ggp.players.deepstack.regret_matching.RegretMatching;
 import com.ggp.players.deepstack.regret_matching.RegretMatchingPlus;
-import com.ggp.players.deepstack.utils.GameTreeTraversalTracker;
+import com.ggp.players.deepstack.trackers.GameTreeTraversalTracker;
 import com.ggp.players.deepstack.utils.InformationSetRange;
 import com.ggp.players.deepstack.utils.IterationTimer;
 import com.ggp.players.deepstack.utils.Strategy;
@@ -133,7 +132,6 @@ public class CFRResolver extends BaseCFRResolver implements ISubgameResolver {
             regretMatching.addActionRegret(is, i, probWithoutActingPlayer*(actionUtility[2*i + pid - 1] - utility[pid - 1]));
             i++;
         }
-        regretMatching.getRegretMatchedStrategy(is, nextStrat);
 
         CFRResult ret = new CFRResult(utility[0], utility[1]);
 
@@ -166,8 +164,7 @@ public class CFRResolver extends BaseCFRResolver implements ISubgameResolver {
             for (IInformationSet os: opponentCFV.keySet()) {
                 subgameGadget.addFollowCFV(os, currentOpponentCFV.get(os));
             }
-            strat = nextStrat;
-            nextStrat = new Strategy();
+            regretMatching.getRegretMatchedStrategy(strat);
             for (IInformationSet myIs: myInformationSets) {
                 cumulativeStrat.addProbabilities(myIs, (action) -> strat.getProbability(myIs, action));
             }

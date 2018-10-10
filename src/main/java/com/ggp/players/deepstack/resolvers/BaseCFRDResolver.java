@@ -7,8 +7,13 @@ import com.ggp.players.deepstack.IRegretMatching;
 import com.ggp.players.deepstack.IResolvingInfo;
 import com.ggp.players.deepstack.IResolvingListener;
 import com.ggp.players.deepstack.ISubgameResolver;
+import com.ggp.players.deepstack.cfrd.CFRDSubgameRoot;
+import com.ggp.players.deepstack.trackers.CFRDTracker;
 import com.ggp.players.deepstack.trackers.GameTreeTraversalTracker;
-import com.ggp.players.deepstack.utils.*;
+import com.ggp.players.deepstack.utils.InformationSetRange;
+import com.ggp.players.deepstack.utils.IterationTimer;
+import com.ggp.players.deepstack.utils.Strategy;
+import com.ggp.players.deepstack.utils.SubgameGadget;
 import com.ggp.utils.PlayerHelpers;
 
 import java.util.ArrayList;
@@ -16,7 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class BaseCFRResolver implements ISubgameResolver {
+public abstract class BaseCFRDResolver implements ISubgameResolver {
     protected final int myId;
     protected IInformationSet hiddenInfo;
     protected InformationSetRange range;
@@ -28,8 +33,8 @@ public abstract class BaseCFRResolver implements ISubgameResolver {
     protected SubgameGadget subgameGadget;
     protected final int opponentId;
 
-    public BaseCFRResolver(int myId, IInformationSet hiddenInfo, InformationSetRange range, HashMap<IInformationSet, Double> opponentCFV,
-                           List<IResolvingListener> resolvingListeners, IRegretMatching regretMatching) {
+    public BaseCFRDResolver(int myId, IInformationSet hiddenInfo, InformationSetRange range, HashMap<IInformationSet, Double> opponentCFV,
+                            List<IResolvingListener> resolvingListeners, IRegretMatching regretMatching) {
         this.myId = myId;
         this.hiddenInfo = hiddenInfo;
         this.range = range;
@@ -53,7 +58,7 @@ public abstract class BaseCFRResolver implements ISubgameResolver {
         }
     }
 
-    protected void findMyNextTurn(GameTreeTraversalTracker tracker) {
+    protected void findMyNextTurn(CFRDTracker tracker) {
         ICompleteInformationState s = tracker.getCurrentState();
         if (s.isTerminal()) return;
         if (tracker.isMyNextTurnReached()) {
@@ -67,32 +72,30 @@ public abstract class BaseCFRResolver implements ISubgameResolver {
         }
     }
 
-    protected GameTreeTraversalTracker prepareDataStructures() {
-        GameTreeTraversalTracker tracker = GameTreeTraversalTracker.createForAct(myId);
-        for (Map.Entry<ICompleteInformationState, Double> stateProb: range.getProbabilities()) {
-            GameTreeTraversalTracker stateTracker = tracker.visitRandom(stateProb.getKey(), stateProb.getValue());
-            findMyNextTurn(stateTracker);
-        }
+    protected CFRDTracker prepareDataStructures() {
+        ICompleteInformationState subgame = new CFRDSubgameRoot(range, opponentCFV, opponentId);
+        CFRDTracker tracker = CFRDTracker.createForAct(myId, range.getNorm(), subgame);
+        findMyNextTurn(tracker);
         return tracker;
     }
 
-    protected abstract ActResult doAct(GameTreeTraversalTracker tracker, IterationTimer timeout);
+    protected abstract ActResult doAct(CFRDTracker tracker, IterationTimer timeout);
 
     @Override
     public ActResult act(IterationTimer timeout) {
         resolvingListeners.forEach(listener -> listener.resolvingStart(resInfo));
-        GameTreeTraversalTracker tracker = prepareDataStructures();
+        CFRDTracker tracker = prepareDataStructures();
         ActResult res = doAct(tracker, timeout);
         resolvingListeners.forEach(listener -> listener.resolvingEnd(resInfo));
         return res;
     }
 
-    protected abstract InitResult doInit(GameTreeTraversalTracker tracker, IterationTimer timeout);
+    protected abstract InitResult doInit(CFRDTracker tracker, IterationTimer timeout);
 
     @Override
     public InitResult init(ICompleteInformationState initialState, IterationTimer timeout) {
         resolvingListeners.forEach(listener -> listener.resolvingStart(resInfo));
-        GameTreeTraversalTracker tracker = GameTreeTraversalTracker.createForInit(myId, initialState);
+        CFRDTracker tracker = CFRDTracker.createForInit(myId, initialState);
         findMyNextTurn(tracker);
         InitResult res = doInit(tracker, timeout);
         resolvingListeners.forEach(listener -> listener.resolvingEnd(resInfo));

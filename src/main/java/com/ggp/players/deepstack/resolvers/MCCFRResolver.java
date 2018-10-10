@@ -5,7 +5,7 @@ import com.ggp.players.deepstack.IRegretMatching;
 import com.ggp.players.deepstack.IResolvingListener;
 import com.ggp.players.deepstack.ISubgameResolver;
 import com.ggp.players.deepstack.regret_matching.RegretMatchingPlus;
-import com.ggp.players.deepstack.utils.GameTreeTraversalTracker;
+import com.ggp.players.deepstack.trackers.GameTreeTraversalTracker;
 import com.ggp.players.deepstack.utils.InformationSetRange;
 import com.ggp.players.deepstack.utils.IterationTimer;
 import com.ggp.players.deepstack.utils.Strategy;
