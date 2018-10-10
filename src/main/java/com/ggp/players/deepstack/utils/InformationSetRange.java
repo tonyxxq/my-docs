@@ -32,6 +32,10 @@ public class InformationSetRange {
         return range.keySet();
     }
 
+    public int size() {
+        return range.size();
+    }
+
     public Set<?extends Map.Entry<ICompleteInformationState, Double>> getProbabilities() {
         return range.entrySet();
     }
