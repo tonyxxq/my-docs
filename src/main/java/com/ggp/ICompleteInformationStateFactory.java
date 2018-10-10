@@ -1,6 +1,8 @@
 package com.ggp;
 
-public interface ICompleteInformationStateFactory {
+import java.io.Serializable;
+
+public interface ICompleteInformationStateFactory extends Serializable {
     /**
      * Make complete information state give both player's information sets
      * @param player1

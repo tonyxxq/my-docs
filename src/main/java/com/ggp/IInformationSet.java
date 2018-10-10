@@ -1,11 +1,12 @@
 package com.ggp;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * Implementing class must be immutable and must suitably override hashCode and equals methods.
  */
-public interface IInformationSet {
+public interface IInformationSet extends Serializable {
     /**
      * Generate information set after taking an action.
      * @param a action

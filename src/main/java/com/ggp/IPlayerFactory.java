@@ -1,5 +1,7 @@
 package com.ggp;
 
-public interface IPlayerFactory {
+import java.io.Serializable;
+
+public interface IPlayerFactory extends Serializable {
     IPlayer create(IGameDescription game, int role);
 }

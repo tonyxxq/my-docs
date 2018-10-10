@@ -1,5 +1,7 @@
 package com.ggp;
 
-public interface IPercept {
+import java.io.Serializable;
+
+public interface IPercept extends Serializable {
     int getTargetPlayer();
 }

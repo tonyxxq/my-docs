@@ -1,6 +1,8 @@
 package com.ggp;
 
-public interface IStrategy {
+import java.io.Serializable;
+
+public interface IStrategy extends Serializable {
     double getProbability(IInformationSet s, IAction a);
     Iterable<IInformationSet> getDefinedInformationSets();
 }

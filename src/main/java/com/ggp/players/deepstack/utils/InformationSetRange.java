@@ -7,11 +7,12 @@ import com.ggp.IStrategy;
 import com.ggp.players.deepstack.utils.NextRangeTree;
 import com.ggp.players.deepstack.utils.PerceptSequence;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class InformationSetRange {
+public class InformationSetRange implements Serializable {
     private HashMap<ICompleteInformationState, Double> range = new HashMap<>();
     private double norm = 1d;
     private int myId;

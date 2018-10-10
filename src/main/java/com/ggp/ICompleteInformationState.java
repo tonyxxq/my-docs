@@ -1,11 +1,12 @@
 package com.ggp;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * Implementing class must be immutable and must suitably override hashCode and equals methods.
  */
-public interface ICompleteInformationState {
+public interface ICompleteInformationState extends Serializable {
     /**
      * Checks whether state is terminal
      * @return
