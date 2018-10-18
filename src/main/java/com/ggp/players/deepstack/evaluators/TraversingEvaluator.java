@@ -6,6 +6,7 @@ import com.ggp.players.deepstack.IResolvingInfo;
 import com.ggp.players.deepstack.IResolvingListener;
 import com.ggp.players.deepstack.ISubgameResolver;
 import com.ggp.players.deepstack.debug.BaseListener;
+import com.ggp.players.deepstack.debug.StrategyAggregatorListener;
 import com.ggp.players.deepstack.utils.Strategy;
 import com.ggp.utils.PlayerHelpers;
 import com.ggp.utils.TimedCounter;
@@ -71,10 +72,12 @@ public class TraversingEvaluator implements IDeepstackEvaluator {
     private static class ActCacheEntry {
         public ISubgameResolver.ActResult actResult;
         public DeepstackPlayer playerWithComputedStrat;
+        public List<EvaluatorEntry> entries;
 
-        public ActCacheEntry(ISubgameResolver.ActResult actResult, DeepstackPlayer playerWithComputedStrat) {
+        public ActCacheEntry(ISubgameResolver.ActResult actResult, DeepstackPlayer playerWithComputedStrat, List<EvaluatorEntry> entries) {
             this.actResult = actResult;
             this.playerWithComputedStrat = playerWithComputedStrat;
+            this.entries = entries;
         }
     }
 
@@ -102,61 +105,21 @@ public class TraversingEvaluator implements IDeepstackEvaluator {
         double playerReachProb = PlayerHelpers.selectByPlayerId(s.getActingPlayerId(), reachProb1, reachProb2);
         IInformationSet is = s.getInfoSetForActingPlayer();
 
-        IResolvingListener stratAggregator = new BaseListener() {
-            private TimedCounter timedCounter = new TimedCounter(logPointsMs);
-            private int strategyIdx = 0;
-
-            @Override
-            public void resolvingStart(IResolvingInfo resInfo) {
-                timedCounter.reset();
-                timedCounter.start();
-                strategyIdx = 0;
-            }
-
-            private void mergeStrategy(IResolvingInfo resInfo) {
-                Strategy strat = resInfo.getUnnormalizedCumulativeStrategy();
-                EvaluatorEntry entry = entries.get(strategyIdx);
-                entry.addTime(timedCounter.getLiveDurationMs(), playerReachProb);
-                Strategy target = entry.getAggregatedStrat();
-                double norm = 0;
-                for (IAction a: legalActions) {
-                    norm += strat.getProbability(is, a);
-                }
-                if (norm > 0) {
-                    final double finNorm = norm;
-                    target.addProbabilities(is, a -> playerReachProb * strat.getProbability(is, a) / finNorm);
-                } else {
-                    target.addProbabilities(is, a -> playerReachProb / legalActions.size());
-                }
-            }
-
-            @Override
-            public void resolvingEnd(IResolvingInfo resInfo) {
-                strategyIdx = logPointsMs.size() - 1;
-                mergeStrategy(resInfo);
-            }
-
-            @Override
-            public void resolvingIterationEnd(IResolvingInfo resInfo) {
-                if (strategyIdx >= logPointsMs.size() - 1) return;
-                int counter = timedCounter.tryIncrement();
-                if (strategyIdx != counter) {
-                    strategyIdx = counter - 1;
-                    mergeStrategy(resInfo);
-                    strategyIdx++;
-                }
-            }
-        };
-
         ActCacheEntry cacheEntry = actCache.computeIfAbsent(s.getInfoSetForActingPlayer(), k -> {
             DeepstackPlayer currentPlayer = PlayerHelpers.selectByPlayerId(s.getActingPlayerId(), pl1, pl2);
-            currentPlayer.registerResolvingListener(stratAggregator);
+            StrategyAggregatorListener strategyAggregatorListener = new StrategyAggregatorListener(logPointsMs);
+            strategyAggregatorListener.initEnd(null);
+            currentPlayer.registerResolvingListener(strategyAggregatorListener);
             ISubgameResolver.ActResult res = currentPlayer.computeStrategy(timeoutMs);
-            currentPlayer.unregisterResolvingListener(stratAggregator);
-            return new ActCacheEntry(res, currentPlayer);
+            currentPlayer.unregisterResolvingListener(strategyAggregatorListener);
+            return new ActCacheEntry(res, currentPlayer, strategyAggregatorListener.getEntries());
         });
 
         ISubgameResolver.ActResult actResult = cacheEntry.actResult;
+        for (int i = 0; i < entries.size(); ++i) {
+            Strategy cachedStrat = cacheEntry.entries.get(i).getAggregatedStrat();
+            entries.get(i).getAggregatedStrat().addProbabilities(is, a -> playerReachProb * cachedStrat.getProbability(is, a));
+        }
 
         int actionIdx = 0;
         for (IAction a: legalActions) {
