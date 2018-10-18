@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class InformationSet implements IInformationSet {
+    private static final long serialVersionUID = 1L;
     private int owner;
     private ChooseAction chosenAction;
     private int size;

@@ -3,6 +3,7 @@ package com.ggp.games.RockPaperScissors;
 import com.ggp.*;
 
 public class GameDescription implements IGameDescription {
+    private static final long serialVersionUID = 1L;
     private CompleteInformationState initialState;
 
     /**

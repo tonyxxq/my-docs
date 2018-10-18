@@ -10,6 +10,7 @@ import java.util.List;
  * Base class for IS wrappers, delegates most methods to the original IS.
  */
 public abstract class InformationSetWrapper implements IInformationSet {
+    private static final long serialVersionUID = 1L;
     protected IInformationSet infoSet;
 
     public InformationSetWrapper(IInformationSet infoSet) {

@@ -13,6 +13,7 @@ import java.util.HashMap;
  * If the underlying strategy changes new wrapper must be created to reflect those changes.
  */
 public class NormalizingStrategyWrapper implements IStrategy {
+    private static final long serialVersionUID = 1L;
     private IStrategy unnormalizedStrategy;
     private HashMap<IInformationSet, Double> norms = new HashMap<>();
 

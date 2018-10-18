@@ -7,6 +7,7 @@ import com.ggp.IRandomNode;
 import java.util.Objects;
 
 public class SelectCISAction implements IAction, IRandomNode.IRandomNodeAction {
+    private static final long serialVersionUID = 1L;
     private ICompleteInformationState selectedState;
     private double prob;
 

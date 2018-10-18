@@ -6,6 +6,7 @@ import com.ggp.utils.random.RandomSampler;
 
 public class StrategyBasedPlayer implements IPlayer {
     public static class Factory implements IPlayerFactory {
+        private static final long serialVersionUID = 1L;
         private IStrategy strategy;
 
         public Factory(IStrategy strategy) {

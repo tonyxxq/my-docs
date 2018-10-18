@@ -3,6 +3,7 @@ package com.ggp.games.LeducPoker.actions;
 import com.ggp.IAction;
 
 public class CallAction implements IAction {
+    private static final long serialVersionUID = 1L;
     public static CallAction instance = new CallAction();
     private CallAction() {}
 

@@ -8,6 +8,7 @@ import java.util.List;
  * Base class for CIS wrappers, delegates most methods to the original state.
  */
 public abstract class CompleteInformationStateWrapper implements ICompleteInformationState {
+    private static final long serialVersionUID = 1L;
     protected ICompleteInformationState state;
 
     public CompleteInformationStateWrapper(ICompleteInformationState state) {

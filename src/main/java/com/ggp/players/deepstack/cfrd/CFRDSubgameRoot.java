@@ -8,6 +8,7 @@ import com.ggp.players.deepstack.utils.InformationSetRange;
 import java.util.*;
 
 public class CFRDSubgameRoot implements ICompleteInformationState {
+    private static final long serialVersionUID = 1L;
     private InformationSetRange range;
     private Map<IInformationSet, Double> opponentCFV;
     private int opponentId;

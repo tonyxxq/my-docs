@@ -11,8 +11,8 @@ import java.util.Random;
 import java.util.function.Function;
 
 public class Strategy implements IStrategy {
+    private static final long serialVersionUID = 1L;
     HashMap<IInformationSet, HashMap<IAction, Double>> strategy = new HashMap<>();
-    Random rng = new Random();
 
     private HashMap<IAction, Double> getSetStragety(IInformationSet s) {
         return strategy.getOrDefault(s, null);
@@ -111,6 +111,10 @@ public class Strategy implements IStrategy {
             ret.strategy.put(is, new HashMap<>(strategy.get(is)));
         }
         return ret;
+    }
+
+    public boolean hasInformationSet(IInformationSet is) {
+        return strategy.containsKey(is);
     }
 
 }

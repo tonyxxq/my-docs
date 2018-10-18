@@ -5,6 +5,7 @@ import com.ggp.IPercept;
 import java.util.Objects;
 
 public class ActionSuccessPercept implements IPercept {
+    private static final long serialVersionUID = 1L;
     private MarkFieldAction lastAction;
     private boolean successful;
 

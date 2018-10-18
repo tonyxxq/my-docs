@@ -2,9 +2,11 @@ package com.ggp.games.TicTacToe;
 
 import com.ggp.IAction;
 
+import java.io.IOException;
 import java.util.Objects;
 
 public class MarkFieldAction implements IAction {
+    private static final long serialVersionUID = 1L;
     public static class Cache {
         private static MarkFieldAction[] xActions;
         private static MarkFieldAction[] oActions;
@@ -31,7 +33,7 @@ public class MarkFieldAction implements IAction {
     private int role;
     private int x;
     private int y;
-    private String comparisonKey;
+    private transient String comparisonKey;
     private static String[] roleKeys = {"X", "O"};
 
     private MarkFieldAction(int role, int x, int y) {
@@ -39,6 +41,15 @@ public class MarkFieldAction implements IAction {
         this.x = x;
         this.y = y;
 
+        initComparisonKey();
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        initComparisonKey();
+    }
+
+    private void initComparisonKey() {
         comparisonKey = String.join(roleKeys[role-1], ";", Integer.toHexString(x), ";",  Integer.toHexString(y));
     }
 

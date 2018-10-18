@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class OpponentsChoiceIS implements IInformationSet {
+    private static final long serialVersionUID = 1L;
     private int owner;
     private IInformationSet followIS;
 

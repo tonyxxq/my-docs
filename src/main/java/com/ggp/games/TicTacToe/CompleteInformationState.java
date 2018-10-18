@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class CompleteInformationState implements ICompleteInformationState {
+    private static final long serialVersionUID = 1L;
     private InformationSet xInfoSet;
     private InformationSet oInfoSet;
     private boolean terminal;

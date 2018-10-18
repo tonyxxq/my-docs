@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class InformationSet implements IInformationSet {
+    private static final long serialVersionUID = 1L;
     private final int owner;
     private final Cards privateCard;
     private final Cards publicCard;
@@ -197,5 +198,20 @@ public class InformationSet implements IInformationSet {
     @Override
     public int getOwnerId() {
         return owner;
+    }
+
+    @Override
+    public String toString() {
+        return "InformationSet{" +
+                "owner=" + owner +
+                ", private=" + privateCard +
+                ", public=" + publicCard +
+                ", pot=" + potSize +
+                ", remainingMoney=" + remainingMoney +
+                ", startingMoney=" + startingMoney +
+                ", round=" + round +
+                ", raised=" + wasRaised +
+                ", folded=" + foldedByPlayer +
+                '}';
     }
 }

@@ -10,6 +10,7 @@ import java.util.*;
 
 public class DeepstackPlayer implements IPlayer {
     public static class Factory implements IPlayerFactory {
+        private static final long serialVersionUID = 1L;
         private ISubgameResolver.Factory resolverFactory;
         private IResolvingListener listener;
 

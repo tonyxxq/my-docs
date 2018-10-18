@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class OpponentsChoiceState implements ICompleteInformationState {
+    private static final long serialVersionUID = 1L;
     private ICompleteInformationState origGameState;
     private int opponentId;
     private double opponentCFV;

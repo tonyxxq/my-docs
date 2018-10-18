@@ -5,6 +5,7 @@ import com.ggp.IAction;
 import java.util.Objects;
 
 public class ChooseAction implements IAction {
+    private static final long serialVersionUID = 1L;
     private int chosen;
 
     public ChooseAction(int chosen) {

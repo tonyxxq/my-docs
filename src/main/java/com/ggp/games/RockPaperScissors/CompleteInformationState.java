@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class CompleteInformationState implements ICompleteInformationState {
+    private static final long serialVersionUID = 1L;
     private InformationSet player1IS, player2IS;
 
     public CompleteInformationState(InformationSet player1IS, InformationSet player2IS) {

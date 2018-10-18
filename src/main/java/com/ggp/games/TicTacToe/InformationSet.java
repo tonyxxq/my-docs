@@ -5,9 +5,11 @@ import com.ggp.ICompleteInformationState;
 import com.ggp.IInformationSet;
 import com.ggp.IPercept;
 
+import java.io.IOException;
 import java.util.*;
 
 public class InformationSet implements IInformationSet{
+    private static final long serialVersionUID = 1L;
     private int[] field;
     private int owningPlayerId;
     private int turn;
@@ -24,7 +26,12 @@ public class InformationSet implements IInformationSet{
         this.turn = turn;
         this.myFields = myFields;
         this.knownEnemyFields = knownEnemyFields;
-        this.comparisonKey = computeComparisonKey();
+        initComparisonKey();
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        initComparisonKey();
     }
 
     public boolean hasLegalActions() {
@@ -299,15 +306,15 @@ public class InformationSet implements IInformationSet{
         };
     }
 
-    private long computeComparisonKey() {
+    private void initComparisonKey() {
         long sum = owningPlayerId;
         long mul = 3;
         for (int i = 0; i < 25; ++i) {
             sum += field[i] * mul;
             mul *= 3;
         }
-        if (owningPlayerId == CompleteInformationState.PLAYER_O) return -sum;
-        return sum;
+        if (owningPlayerId == CompleteInformationState.PLAYER_O) sum = -sum;
+        comparisonKey = sum;
     }
 
     @Override

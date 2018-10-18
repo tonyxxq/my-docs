@@ -6,6 +6,7 @@ import com.ggp.*;
  * Makes a perfect-recall version of given game.
  */
 public class PerfectRecallGameDescriptionWrapper implements IGameDescription {
+    private static final long serialVersionUID = 1L;
     private IGameDescription gameDesc;
     private PerfectRecallCIS initialState;
 

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class OpponentsTerminalState implements ICompleteInformationState {
+    private static final long serialVersionUID = 1L;
     private double opponentPayoff;
     private int opponentId;
 

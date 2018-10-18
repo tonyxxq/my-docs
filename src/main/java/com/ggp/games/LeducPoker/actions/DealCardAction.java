@@ -6,6 +6,7 @@ import com.ggp.games.LeducPoker.Cards;
 import java.util.Objects;
 
 public class DealCardAction implements IAction {
+    private static final long serialVersionUID = 1L;
     private final Cards card;
     private final int player; // 0 -> public
 

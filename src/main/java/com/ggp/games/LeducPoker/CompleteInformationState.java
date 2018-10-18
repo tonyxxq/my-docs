@@ -8,20 +8,19 @@ import com.ggp.games.LeducPoker.actions.RaiseAction;
 import com.ggp.games.LeducPoker.percepts.*;
 import com.ggp.utils.UniformRandomNode;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class CompleteInformationState implements ICompleteInformationState {
+    private static final long serialVersionUID = 1L;
     private final InformationSet player1IS;
     private final InformationSet player2IS;
     private final int actingPlayer;
-    private ArrayList<IAction> legalDealActions;
+    private transient ArrayList<IAction> legalDealActions;
 
-    public CompleteInformationState(InformationSet player1IS, InformationSet player2IS, int actingPlayer) {
-        this.player1IS = player1IS;
-        this.player2IS = player2IS;
-        this.actingPlayer = actingPlayer;
+    private void initLegalDealActions() {
         Rounds round = player2IS.getRound();
         if (round == Rounds.PrivateCard || round == Rounds.PublicCard) {
             legalDealActions = new ArrayList<>(3);
@@ -45,6 +44,18 @@ public class CompleteInformationState implements ICompleteInformationState {
                 }
             }
         }
+    }
+
+    public CompleteInformationState(InformationSet player1IS, InformationSet player2IS, int actingPlayer) {
+        this.player1IS = player1IS;
+        this.player2IS = player2IS;
+        this.actingPlayer = actingPlayer;
+        initLegalDealActions();
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        initLegalDealActions();
     }
 
     @Override

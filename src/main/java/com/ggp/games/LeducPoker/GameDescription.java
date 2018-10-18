@@ -6,6 +6,7 @@ import com.ggp.IGameDescription;
 import com.ggp.IInformationSet;
 
 public class GameDescription implements IGameDescription {
+    private static final long serialVersionUID = 1L;
     private final int startingMoney1, startingMoney2;
     private final CompleteInformationState initialState;
 

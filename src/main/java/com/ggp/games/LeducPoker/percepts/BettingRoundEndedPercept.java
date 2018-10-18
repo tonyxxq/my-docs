@@ -5,6 +5,7 @@ import com.ggp.IPercept;
 import java.util.Objects;
 
 public class BettingRoundEndedPercept implements IPercept {
+    private static final long serialVersionUID = 1L;
     private final int owner;
 
     public BettingRoundEndedPercept(int owner) {

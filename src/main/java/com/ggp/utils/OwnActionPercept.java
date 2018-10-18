@@ -6,6 +6,7 @@ import com.ggp.IPercept;
 import java.util.Objects;
 
 public class OwnActionPercept implements IPercept {
+    private static final long serialVersionUID = 1L;
     private int owner;
     private IAction action;
 

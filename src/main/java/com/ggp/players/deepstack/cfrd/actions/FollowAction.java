@@ -3,6 +3,7 @@ package com.ggp.players.deepstack.cfrd.actions;
 import com.ggp.IAction;
 
 public class FollowAction implements IAction {
+    private static final long serialVersionUID = 1L;
     public static FollowAction instance = new FollowAction();
     private FollowAction() {}
 

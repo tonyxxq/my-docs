@@ -5,6 +5,7 @@ import com.ggp.utils.random.RandomSampler;
 
 public class RandomPlayer implements IPlayer {
     public static class Factory implements IPlayerFactory {
+        private static final long serialVersionUID = 1L;
         @Override
         public IPlayer create(IGameDescription game, int role) {
             return new RandomPlayer(game.getInitialInformationSet(role), role);
