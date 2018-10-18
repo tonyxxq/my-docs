@@ -8,8 +8,10 @@ import com.ggp.players.deepstack.ISubgameResolver;
 import com.ggp.players.deepstack.debug.BaseListener;
 import com.ggp.players.deepstack.debug.StrategyAggregatorListener;
 import com.ggp.players.deepstack.utils.Strategy;
+import com.ggp.utils.CompleteInformationStateWrapper;
 import com.ggp.utils.PlayerHelpers;
 import com.ggp.utils.TimedCounter;
+import com.ggp.utils.recall.PerfectRecallGameDescriptionWrapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -81,7 +83,8 @@ public class TraversingEvaluator implements IDeepstackEvaluator {
         }
     }
 
-    private void aggregateStrategy(HashMap<IInformationSet, ActCacheEntry> actCache, List<EvaluatorEntry> entries, ICompleteInformationState s, DeepstackPlayer pl1, DeepstackPlayer pl2, double reachProb1, double reachProb2, int depth) {
+    private void aggregateStrategy(HashMap<IInformationSet, ActCacheEntry> actCache, List<EvaluatorEntry> entries, CompleteInformationStateWrapper sw, DeepstackPlayer pl1, DeepstackPlayer pl2, double reachProb1, double reachProb2, int depth) {
+        ICompleteInformationState s = sw.getOrigState();
         if (s.isTerminal()) return;
 
         List<IAction> legalActions = s.getLegalActions();
@@ -96,7 +99,7 @@ public class TraversingEvaluator implements IDeepstackEvaluator {
                 npl1 = ensureDifference(pl1, npl1);
                 npl2 = ensureDifference(pl2, npl2);
                 printAction(actionIdx, legalActions.size());
-                aggregateStrategy(actCache, entries, s.next(a), npl1, npl2, reachProb1 * actionProb, reachProb2 * actionProb, depth + 1);
+                aggregateStrategy(actCache, entries, (CompleteInformationStateWrapper) sw.next(a), npl1, npl2, reachProb1 * actionProb, reachProb2 * actionProb, depth + 1);
                 unprintAction(actionIdx, legalActions.size());
                 actionIdx++;
             }
@@ -105,7 +108,7 @@ public class TraversingEvaluator implements IDeepstackEvaluator {
         double playerReachProb = PlayerHelpers.selectByPlayerId(s.getActingPlayerId(), reachProb1, reachProb2);
         IInformationSet is = s.getInfoSetForActingPlayer();
 
-        ActCacheEntry cacheEntry = actCache.computeIfAbsent(s.getInfoSetForActingPlayer(), k -> {
+        ActCacheEntry cacheEntry = actCache.computeIfAbsent(sw.getInfoSetForActingPlayer(), k -> {
             DeepstackPlayer currentPlayer = PlayerHelpers.selectByPlayerId(s.getActingPlayerId(), pl1, pl2);
             StrategyAggregatorListener strategyAggregatorListener = new StrategyAggregatorListener(logPointsMs);
             strategyAggregatorListener.initEnd(null);
@@ -139,7 +142,7 @@ public class TraversingEvaluator implements IDeepstackEvaluator {
             npl1 = ensureDifference(pl1, npl1);
             npl2 = ensureDifference(pl2, npl2);
             printAction(actionIdx, legalActions.size());
-            aggregateStrategy(actCache, entries, s.next(a), npl1, npl2, nrp1, nrp2, depth + 1);
+            aggregateStrategy(actCache, entries, (CompleteInformationStateWrapper) sw.next(a), npl1, npl2, nrp1, nrp2, depth + 1);
             unprintAction(actionIdx, legalActions.size());
             actionIdx++;
         }
@@ -158,7 +161,7 @@ public class TraversingEvaluator implements IDeepstackEvaluator {
         }
         for (int i  = 0; i < count; ++i) {
             HashMap<IInformationSet, ActCacheEntry> actCache = new HashMap<>();
-            aggregateStrategy(actCache, entries, initialState, pl1, pl2, 1d, 1d, 0);
+            aggregateStrategy(actCache, entries, (CompleteInformationStateWrapper) PerfectRecallGameDescriptionWrapper.wrapInitialState(initialState), pl1, pl2, 1d, 1d, 0);
         }
 
         for (EvaluatorEntry entry: entries) {
