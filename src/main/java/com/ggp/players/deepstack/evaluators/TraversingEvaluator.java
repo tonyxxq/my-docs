@@ -40,11 +40,10 @@ public class TraversingEvaluator implements IDeepstackEvaluator {
         this.logPointsMs = new ArrayList<>(logPointsMs);
     }
 
-    private DeepstackPlayer applyPercepts(DeepstackPlayer pl, int playerId, Iterable<IPercept> percepts) {
+    private void applyPercepts(DeepstackPlayer pl1, DeepstackPlayer pl2, Iterable<IPercept> percepts) {
         for (IPercept p: percepts) {
-            if (playerId == p.getTargetPlayer()) pl = pl.getNewPlayerByPercept(p);
+            PlayerHelpers.selectByPlayerId(p.getTargetPlayer(), pl1, pl2).receivePercepts(p);
         }
-        return pl;
     }
 
     private String getActionStr(int actionIdx, int actions) {
@@ -64,11 +63,6 @@ public class TraversingEvaluator implements IDeepstackEvaluator {
             clearStr += " ";
         }
         System.out.print(tmp + clearStr + tmp);
-    }
-
-    private DeepstackPlayer ensureDifference(DeepstackPlayer orig, DeepstackPlayer next) {
-        if (orig == next) return orig.copy();
-        return next;
     }
 
     private static class ActCacheEntry {
@@ -94,10 +88,8 @@ public class TraversingEvaluator implements IDeepstackEvaluator {
             for (IRandomNode.IRandomNodeAction rndAction: rndNode) {
                 IAction a = rndAction.getAction();
                 double actionProb = rndAction.getProb();
-                Iterable<IPercept> percepts = s.getPercepts(a);
-                DeepstackPlayer npl1 = applyPercepts(pl1, 1, percepts), npl2 = applyPercepts(pl2, 2, percepts);
-                npl1 = ensureDifference(pl1, npl1);
-                npl2 = ensureDifference(pl2, npl2);
+                DeepstackPlayer npl1 = pl1.copy(), npl2 = pl2.copy();
+                applyPercepts(npl1, npl2, s.getPercepts(a));
                 printAction(actionIdx, legalActions.size());
                 aggregateStrategy(actCache, entries, (CompleteInformationStateWrapper) sw.next(a), npl1, npl2, reachProb1 * actionProb, reachProb2 * actionProb, depth + 1);
                 unprintAction(actionIdx, legalActions.size());
@@ -128,19 +120,19 @@ public class TraversingEvaluator implements IDeepstackEvaluator {
         for (IAction a: legalActions) {
             double actionProb = actResult.cumulativeStrategy.getProbability(is, a);
             double nrp1 = reachProb1, nrp2 = reachProb2;
-            DeepstackPlayer npl1 = pl1, npl2 = pl2;
+            DeepstackPlayer npl1 = null, npl2 = null;
             if (s.getActingPlayerId() == 1) {
-                npl1 = cacheEntry.playerWithComputedStrat.getNewPlayerByAction(a, actResult);
+                npl1 = cacheEntry.playerWithComputedStrat.copy();
+                npl2 = pl2.copy();
+                npl1.act(a, cacheEntry.actResult);
                 nrp1 *= actionProb;
             } else if (s.getActingPlayerId() == 2) {
-                npl2 = cacheEntry.playerWithComputedStrat.getNewPlayerByAction(a, actResult);
+                npl1 = pl1.copy();
+                npl2 = cacheEntry.playerWithComputedStrat.copy();
+                npl2.act(a, cacheEntry.actResult);
                 nrp2 *= actionProb;
             }
-            Iterable<IPercept> percepts = s.getPercepts(a);
-            npl1 = applyPercepts(npl1, 1, percepts);
-            npl2 = applyPercepts(npl2, 2, percepts);
-            npl1 = ensureDifference(pl1, npl1);
-            npl2 = ensureDifference(pl2, npl2);
+            applyPercepts(npl1, npl2, s.getPercepts(a));
             printAction(actionIdx, legalActions.size());
             aggregateStrategy(actCache, entries, (CompleteInformationStateWrapper) sw.next(a), npl1, npl2, nrp1, nrp2, depth + 1);
             unprintAction(actionIdx, legalActions.size());

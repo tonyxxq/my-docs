@@ -123,22 +123,6 @@ public class DeepstackPlayer implements IPlayer {
         return r.act(timer);
     }
 
-    public DeepstackPlayer getNewPlayerByAction(IAction forcedAction, ISubgameResolver.ActResult actRes) {
-        InformationSetRange nRange = range.copy();
-        return new DeepstackPlayer(id, nRange, hiddenInfo.next(forcedAction), cisFactory, actRes.actionToNTIT.get(forcedAction),
-                actRes.myISToNRT, gameDesc, new PerceptSequence.Builder(), forcedAction, actRes.actionToPsMap.get(forcedAction),
-                actRes.cumulativeStrategy, resolvingListeners, resolverFactory, actRes.opponentCFVNorm);
-    }
-
-    public DeepstackPlayer getNewPlayerByPercept(IPercept p) {
-        InformationSetRange nRange = range.copy();
-        PerceptSequence.Builder nPSBuilder = myPSBuilder.copy();
-        nPSBuilder.add(p);
-        return new DeepstackPlayer(id, nRange, hiddenInfo.applyPercept(p), cisFactory, ntit.getNext(p),
-                myISToNRT, gameDesc, nPSBuilder, myLastAction, psMap,
-                lastCumulativeStrategy, resolvingListeners, resolverFactory, opponentCFVNorm);
-    }
-
     public DeepstackPlayer copy() {
         InformationSetRange nRange = range.copy();
         PerceptSequence.Builder nPSBuilder = myPSBuilder.copy();
@@ -149,8 +133,6 @@ public class DeepstackPlayer implements IPlayer {
 
     private IAction act(IAction forcedAction, long timeoutMillis) {
         ISubgameResolver.ActResult res = computeStrategy(timeoutMillis);
-        lastCumulativeStrategy = res.cumulativeStrategy;
-
         IAction selectedAction;
         if (forcedAction == null) {
             selectedAction = PlayerHelpers.sampleAction(sampler, hiddenInfo, res.cumulativeStrategy);
@@ -158,13 +140,18 @@ public class DeepstackPlayer implements IPlayer {
             selectedAction = forcedAction;
         }
 
+        act(selectedAction, res);
+        return selectedAction;
+    }
+
+    public void act(IAction selectedAction, ISubgameResolver.ActResult res) {
+        lastCumulativeStrategy = res.cumulativeStrategy;
         myLastAction = selectedAction;
         ntit = res.actionToNTIT.get(selectedAction);
         psMap = res.actionToPsMap.get(selectedAction);
         myISToNRT = res.myISToNRT;
         hiddenInfo = hiddenInfo.next(selectedAction);
         opponentCFVNorm = res.opponentCFVNorm;
-        return selectedAction;
     }
 
     @Override
