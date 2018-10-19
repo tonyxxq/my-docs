@@ -2,9 +2,10 @@ package com.ggp.utils.recall;
 
 import com.ggp.IPercept;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-class PerceptListNode {
+class PerceptListNode implements Serializable {
     public final PerceptListNode previous;
     public final IPercept percept;
 
