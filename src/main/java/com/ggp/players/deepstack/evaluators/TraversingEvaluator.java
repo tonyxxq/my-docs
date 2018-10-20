@@ -2,15 +2,11 @@ package com.ggp.players.deepstack.evaluators;
 
 import com.ggp.*;
 import com.ggp.players.deepstack.DeepstackPlayer;
-import com.ggp.players.deepstack.IResolvingInfo;
-import com.ggp.players.deepstack.IResolvingListener;
 import com.ggp.players.deepstack.ISubgameResolver;
-import com.ggp.players.deepstack.debug.BaseListener;
 import com.ggp.players.deepstack.debug.StrategyAggregatorListener;
 import com.ggp.players.deepstack.utils.Strategy;
 import com.ggp.utils.CompleteInformationStateWrapper;
 import com.ggp.utils.PlayerHelpers;
-import com.ggp.utils.TimedCounter;
 import com.ggp.utils.recall.PerfectRecallGameDescriptionWrapper;
 
 import java.util.ArrayList;
@@ -112,7 +108,9 @@ public class TraversingEvaluator implements IDeepstackEvaluator {
 
         ISubgameResolver.ActResult actResult = cacheEntry.actResult;
         for (int i = 0; i < entries.size(); ++i) {
-            Strategy cachedStrat = cacheEntry.entries.get(i).getAggregatedStrat();
+            EvaluatorEntry cachedEntry = cacheEntry.entries.get(i);
+            Strategy cachedStrat = cachedEntry.getAggregatedStrat();
+            entries.get(i).addTime(cachedEntry.getEntryTimeMs(), playerReachProb);
             entries.get(i).getAggregatedStrat().addProbabilities(is, a -> playerReachProb * cachedStrat.getProbability(is, a));
         }
 
