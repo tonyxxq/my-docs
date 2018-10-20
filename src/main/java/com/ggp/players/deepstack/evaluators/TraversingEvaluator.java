@@ -153,7 +153,7 @@ public class TraversingEvaluator implements IDeepstackEvaluator {
         }
         for (int i  = 0; i < count; ++i) {
             HashMap<IInformationSet, ActCacheEntry> actCache = new HashMap<>();
-            aggregateStrategy(actCache, entries, (CompleteInformationStateWrapper) PerfectRecallGameDescriptionWrapper.wrapInitialState(initialState), pl1, pl2, 1d, 1d, 0);
+            aggregateStrategy(actCache, entries, (CompleteInformationStateWrapper) PerfectRecallGameDescriptionWrapper.wrapInitialState(initialState), pl1.copy(), pl2.copy(), 1d, 1d, 0);
         }
 
         for (EvaluatorEntry entry: entries) {
