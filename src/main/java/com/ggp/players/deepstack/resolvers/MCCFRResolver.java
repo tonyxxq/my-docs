@@ -17,11 +17,11 @@ public class MCCFRResolver extends BaseCFRResolver implements ISubgameResolver {
     public static class Factory implements ISubgameResolver.Factory {
         private double targetingProb = 0d;
         private double explorationProb = 0.2d;
-        private IRegretMatching regretMatching = new RegretMatchingPlus();
+        private IRegretMatching.Factory rmFactory = new RegretMatchingPlus.Factory();
 
         @Override
         public ISubgameResolver create(int myId, IInformationSet hiddenInfo, InformationSetRange myRange, HashMap<IInformationSet, Double> opponentCFV, ICompleteInformationStateFactory cisFactory, ArrayList<IResolvingListener> resolvingListeners) {
-            return new MCCFRResolver(myId, hiddenInfo, myRange, opponentCFV, resolvingListeners, regretMatching, targetingProb, explorationProb);
+            return new MCCFRResolver(myId, hiddenInfo, myRange, opponentCFV, resolvingListeners, rmFactory.create(), targetingProb, explorationProb);
         }
 
         @Override
@@ -29,7 +29,7 @@ public class MCCFRResolver extends BaseCFRResolver implements ISubgameResolver {
             return "MC-CFR{" +
                     ", t=" + targetingProb +
                     ", e=" + explorationProb +
-                    ", rm=" + regretMatching.getConfigString() +
+                    ", rm=" + rmFactory.getConfigString() +
                     '}';
         }
     }

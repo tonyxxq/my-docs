@@ -16,7 +16,7 @@ public class CFRResolver extends BaseCFRResolver implements ISubgameResolver {
     public static class Factory implements ISubgameResolver.Factory {
         private IUtilityEstimator utilityEstimator;
         private int depthLimit;
-        private IRegretMatching regretMatching = new RegretMatchingPlus();
+        private IRegretMatching.Factory rmFactory = new RegretMatchingPlus.Factory();
 
         public Factory(IUtilityEstimator utilityEstimator, int depthLimit) {
             this.utilityEstimator = utilityEstimator;
@@ -27,7 +27,7 @@ public class CFRResolver extends BaseCFRResolver implements ISubgameResolver {
         public ISubgameResolver create(int myId, IInformationSet hiddenInfo, InformationSetRange myRange, HashMap<IInformationSet, Double> opponentCFV,
                                        ICompleteInformationStateFactory cisFactory, ArrayList<IResolvingListener> resolvingListeners)
         {
-            return new CFRResolver(myId, hiddenInfo, myRange, opponentCFV, cisFactory, resolvingListeners, regretMatching, utilityEstimator, depthLimit);
+            return new CFRResolver(myId, hiddenInfo, myRange, opponentCFV, cisFactory, resolvingListeners, rmFactory.create(), utilityEstimator, depthLimit);
         }
 
         @Override
@@ -35,7 +35,7 @@ public class CFRResolver extends BaseCFRResolver implements ISubgameResolver {
             return "CFR{" +
                     "ue=" + ((utilityEstimator == null) ? "null" : utilityEstimator.getConfigString()) +
                     ", dl=" + depthLimit +
-                    ", rm=" + regretMatching.getConfigString() +
+                    ", rm=" + rmFactory.getConfigString() +
                     '}';
         }
     }
