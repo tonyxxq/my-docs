@@ -1,0 +1,22 @@
+# Simple Leduc Hold'Em Poker
+
+2 players, 2x3 cards (J, J, Q, Q, K, K).
+## 1 hand = 5 rounds:
+ 1. each player gets 1 private card
+ 2. betting round
+ 3. single public card is revealed
+ 4. betting round
+ 5. winner is determined and takes the pot:
+  - player with the same private card as the public card wins
+  - player with higher card wins (J < Q < K)
+  - draw (bets are returned)
+
+## Betting:
+ - only one raise by pre-specified amount (2/4 respectively for 1st and 2nd betting round) per round
+ - fold -> hand ends and the other player takes the pot
+ - call -> hand continues, pot gets updated
+
+## Pot:
+ - hand starts with players giving 1 to pot
+ - players can only raise if they have enough money left
+ - players can call opponents raise even if they dont have engough money (in that case the difference gets returned to the other player)
