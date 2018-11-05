@@ -54,6 +54,42 @@
   ttt(m0)
   ```
 
+- 方法的点和括号
+
+  > 如果方法有<font color="red">0或者1个参数</font>，括号可以丢掉
+
+  ```scala
+  // 下面两个输出是一样的
+  println(1.to(3))
+  println(1 to 3)
+  
+  // 当只有两个元素的时候， 交换元素
+  val x = (1, 2)
+  println(x.swap)
+  ```
+
+- 多行注释，和 python 一致
+
+  ```
+  ​```
+  这是注释
+  ​```
+  ```
+
+- 元组
+
+  ```scala
+  // 定义
+  val x = (1, 2,3)
+  
+  // 访问， 下划线加数字，数字是元素的序号
+  println(x._1)
+  
+  // Tuple.productIterator()方法遍历元组的所有元素
+  val x = (1, 2, 3)
+  x.productIterator.foreach(i => println(i))
+  ```
+
 - 闭包
 
   > 函数可以使用外部的变量
@@ -139,7 +175,7 @@
   }
   ```
 
-  > range函数 生成区间，和python类似
+  > range 函数 生成区间，和 python 类似
 
   ```scala
   // 指定开始、结束位置、步长
@@ -152,27 +188,149 @@
   // empty
   ```
 
-- 
+- to  和 untile
+
+  > 结果都是 Range 类型
+
+  ```scala
+  // 结果 Range(1, 2, 3, 4, 5, 6, 7, 8, 9)
+  println(1 until 10)
+  
+  // 结果 Range(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+  println(1 to 10)
+  ```
 
 - 集合
 
-  ```scala
-  // 定义整型 List
-  val x = List(1,2,3,4)
-  
-  // 定义 Set
-  val x = Set(1,3,5,7)
-  
-  // 定义 Map
-  val x = Map("one" -> 1, "two" -> 2, "three" -> 3)
-  println(map get "three" getOrElse("b"));
-  
-  // 创建两个不同类型元素的元组
-  val x = (10, "Runoob")
-  
-  // 定义 Option
-  val x:Option[Int] = Some(5)
-  ```
+  - Map
+
+    ```scala
+    // 定义 Map
+    var x:Map[String,Int] = Map("one" -> 1, "two" -> 2, "three" -> 3)
+    
+    // 向 map 添加元素
+    x += ("four" -> 4)
+    x += ("five" -> 5)
+    
+    // 覆盖元素
+    x += ("five" -> 5)
+    
+    // 删除指定 key 的元素, 多个用 , 分割, 和 remove 一样
+    x -= ("five", "one")
+    
+    // 返回迭代器， 下面每个元素的结果是元组类型
+    var list =  x.iterator.toList
+    println(list)
+    
+    // addString，将 Map 中的所有元素附加到 StringBuilder，可加入分隔符，keys,values也可以使用 addString
+    var sb1 = new StringBuilder;
+    x.addString(sb1)
+    print(sb1)
+    
+    var sb2 = new StringBuilder;
+    x.addString(sb2, "||")
+    print(sb2)
+    
+    // 返回指定 key 的值
+    println(x.apply("two"))
+    
+    // clear 清空 map
+    // clone 克隆
+    
+    // count 返回满足条件的元素数量, e 是一个元组，第一个值为key， 第二个值为 value
+    x.count(e => e._2 > 0)
+    
+    // contains判断是否存在指定的 key
+    x.contains("two")
+    
+    // drop：丟掉前几个元素, dropRight：丢掉后面几个元素
+    x = x drop 2
+    
+    // empty 返回相同类型的空 Map, 之前的 map 不被影响
+    var x2 = x.empty
+    
+    // equals 判断两个 map 是否相等
+    
+    // exists, filter, filterKeys, find, foreach, isEmpty, keys, last, max, min, 	    mkString, product, size, sum
+    
+    // init 返回所有元素， 除了最后一个; tail 返回所有元素， 除了第一个
+    // take，返回前 n 个; takeRight, 返回后 n 个元素
+    // toArray, toList, toSeq, toSet
+    ```
+
+  - List
+
+    > 注意：列表是不能改变的值一旦被定义就不能改变， 其他没有列出的方法和 map 一致
+
+    ```scala
+    // 定义列表
+    val x = List(1, 2, 3, 4)
+    
+    // head 返回列表第一个元素
+    println(x.head)
+    
+    // tail 返回一个列表，包含除了第一元素之外的其他元素
+    println(x.tail)
+    
+    // isEmpty 在列表为空时返回true
+    println(x.isEmpty)
+    
+    // 列表连接 ::: 或 List.concat(x, x2)
+    val x2 = List(5, 6, 7)
+    val x3 = x ::: x2
+    
+    // fill, 指定重复数量的元素列表
+    val num = List.fill(10)(2)         // 重复元素 2, 10 次
+    
+    // tabulate, 通过给定的函数来创建列表， 第一个参数为元素的数量，可以二维，第二个为函数，初始值为 0
+    val squares = List.tabulate(6)(n => n * n)
+    println(squares)
+    
+    // reverse ，序列翻转
+    
+    // intersect 计算多个集合的交集
+    // forall 检测所有元素是否满足条件 返回 boolean
+    // distinct 去重
+    
+    // :+ 复制添加元素后列表, 因为列表是不能修改的， 列表
+    val a = List(1)
+    val b = a:+2
+    print(b)
+    ```
+
+  - Set
+
+    > 默认是 set 不可变的
+    >
+    > 如果想使用可变集合，需要引用 **scala.collection.mutable.Set** 包
+
+    ```scala
+    // 定义 Set
+    val x = Set(1,3,5,7)
+    
+    // ++ 连接两个集合, 重复的会去重
+    val site1 = Set("Runoob", "Google", "Baidu")
+    val site2 = Set("Faceboook", "Taobao")
+    var site = site1 ++ site2
+    
+    // 计算交集 intersect
+    
+    // 其他的方法和 map 和 list 一致
+    ```
+
+  - Option
+
+    ```scala
+    // 定义 Option
+    val x:Option[Int] = Some(5)
+    ```
+
+  - 元组
+
+    ```scala
+    // 创建两个不同类型元素的元组
+    val x = (10, "Runoob")
+    ```
 
   **注意：Scala 使用 Option、Some、None，避免使用 Null， 当返回的option有可能为None时使用getOrElse设置默认值。**
 
@@ -424,4 +582,56 @@
   // 获取屏幕上的输入
   val line = StdIn.readLine()
   println("谢谢，你输入的是: " + line)
+  ```
+
+- for 循环
+
+  ```scala
+  // 普通 for 循环
+  for (a <- 1 to 10) {
+     println("Value of a: " + a);
+  }
+  
+  // 嵌套 for 循环
+  var a = 0;
+  var b = 0;
+  for( a <- 1 to 3; b <- 1 to 3){
+      println( "Value of a: " + a );
+      println( "Value of b: " + b );
+  }
+  
+  // for 循环过滤, 多个条件使用 ; 分割
+  var a = 0;
+  val numList = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+  for (a <- numList
+       if a != 3; if a < 8; if a!=7) {
+      println("Value of a: " + a);
+  }
+  
+  // yield, 结果为 List(1, 2, 4, 5, 6, 7)
+  val a = 0
+  val numList = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+  var retVal = for {a <- numList
+                    if a != 3; if a < 8
+                   } yield a
+  println(retVal)
+  ```
+
+- 传递可变参数
+
+  ```scala
+  
+  // 离散的实参, * 可以有任意多个 Int 类型
+  def sum(values:Int*)=values.foldLeft(10){_+_}
+  println(sum(2,3,5))// 输出20
+   
+  // 数组做实参(:_*将数组展开成离散值， 类似 ES6 中的[...numbers])
+  val numbers = Array(2,3,5)
+  println(sum(numbers:_*))// 输出20
+  ```
+
+
+
+  ```
+  
   ```
