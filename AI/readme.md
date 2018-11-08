@@ -5,3 +5,7 @@
 <a href="docs/推荐算法">推荐算法</a>
 
 <a href="docs/高斯混合模型.md/">高斯混合模型</a>
+
+<a href="docs/PCA.md">PCA</a>
+
+<a href="docs/交替最小二乘法.md">交替最小二乘法</a>
