@@ -9,3 +9,8 @@
 <a href="docs/PCA.md">PCA</a>
 
 <a href="docs/交替最小二乘法.md">交替最小二乘法</a>
+
+<a href="docs/条件随机场.md">条件随机场</a>
+
+<a href="docs/图像语义分割.md">图像语义分割</a>
+
